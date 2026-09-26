@@ -1,0 +1,46 @@
+---
+/** Cabecera de sección reutilizable: eyebrow + título (con animación por palabras) + intro + acción. */
+import Eyebrow from './Eyebrow.astro';
+interface Props {
+  eyebrow?: string;
+  index?: string;
+  title: string;
+  /** palabra(s) del título que se muestran en serif itálica con color de acento */
+  accent?: string;
+  intro?: string;
+  align?: 'left' | 'center' | 'split';
+  as?: 'h1' | 'h2' | 'h3';
+  size?: 'h1' | 'h2' | 'h3';
+  class?: string;
+}
+const { eyebrow, index, title, accent, intro, align = 'left', as: H = 'h2', size = 'h2', class: className = '' } = Astro.props;
+const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const html = accent && title.includes(accent) ? esc(title).replace(esc(accent), `<em class="serif accent">${esc(accent)}</em>`) : esc(title);
+const hasAction = Astro.slots.has('default');
+---
+<header class:list={['sh', `sh--${align}`, className]}>
+  <div class="sh__main">
+    {eyebrow && <Eyebrow index={index}>{eyebrow}</Eyebrow>}
+    <H class:list={['sh__title', size]} data-split set:html={html} />
+  </div>
+  {(intro || hasAction) && (
+    <div class="sh__side" data-reveal style="--delay:150ms">
+      {intro && <p class="lead">{intro}</p>}
+      {hasAction && <div class="sh__action"><slot /></div>}
+    </div>
+  )}
+</header>
+<style>
+  .sh { display: grid; gap: var(--space-5); margin-bottom: clamp(2.5rem, 2rem + 3vw, 5rem); }
+  .sh__main { display: grid; gap: var(--space-4); justify-items: start; }
+  .sh__title { max-width: 18ch; }
+  .sh__title :global(em) { font-size: 1.08em; line-height: 0.9; }
+  .sh__side { display: grid; gap: var(--space-5); align-content: end; justify-items: start; }
+  .sh--center { text-align: center; justify-items: center; }
+  .sh--center .sh__main, .sh--center .sh__side { justify-items: center; }
+  .sh--center .sh__title { max-width: 20ch; }
+  .sh--center .lead { margin-inline: auto; }
+  @media (min-width: 960px) {
+    .sh--split { grid-template-columns: 1.3fr 1fr; align-items: end; gap: var(--space-8); }
+  }
+</style>

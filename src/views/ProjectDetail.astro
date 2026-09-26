@@ -1,0 +1,105 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/layout/Breadcrumbs.astro';
+import Photo from '../components/ui/Photo.astro';
+import Chip from '../components/ui/Chip.astro';
+import Icon from '../components/ui/Icon.astro';
+import Button from '../components/ui/Button.astro';
+import SectionHeader from '../components/ui/SectionHeader.astro';
+import ProjectCard from '../components/sections/ProjectCard.astro';
+import CtaBand from '../components/sections/CtaBand.astro';
+import { path, detailPath, t, useT, type Lang } from '../i18n';
+import { projects, statusLabel, typeLabel, type Project } from '../data/projects';
+import { solutions } from '../data/solutions';
+interface Props { lang: Lang; project: Project }
+const { lang, project: p } = Astro.props;
+const tr = useT(lang);
+const alternates = { es: detailPath('projects', p.slug.es, 'es'), en: detailPath('projects', p.slug.en, 'en') };
+const related = projects.filter((x) => x !== p).sort((a, b) => Number(b.type === p.type) - Number(a.type === p.type)).slice(0, 3);
+const sol = solutions.find((s) => s.key === p.type);
+const coords = `${Math.abs(p.lat).toFixed(2)}° ${p.lat >= 0 ? 'N' : 'S'} · ${Math.abs(p.lon).toFixed(2)}° ${p.lon >= 0 ? 'E' : 'W'}`;
+const ld = { '@context': 'https://schema.org', '@type': 'Place', name: p.name, description: t(p.summary, lang), geo: { '@type': 'GeoCoordinates', latitude: p.lat, longitude: p.lon }, address: { '@type': 'PostalAddress', addressLocality: t(p.location, lang), addressCountry: t(p.country, lang) } };
+---
+<BaseLayout lang={lang} title={`${p.name} · ${p.capacity}`} description={t(p.summary, lang)} alternates={alternates} headerTheme="dark" jsonLd={[ld]}>
+  <section class="pd-hero surface-dark">
+    <div class="pd-hero__media"><Photo id={p.photo} lang={lang} ratio={16 / 9} loading="eager" fetchpriority="high" sizes="100vw" /></div>
+    <div class="pd-hero__shade" aria-hidden="true"></div>
+    <div class="pd-hero__inner container">
+      <Breadcrumbs lang={lang} items={[{ label: tr('nav.projects'), href: path('projects', lang) }, { label: p.name }]} />
+      <div class="pd-hero__chips"><Chip tone="sun">{t(typeLabel[p.type], lang)}</Chip><Chip tone="dark" dot={p.status !== 'operating'}>{t(statusLabel[p.status], lang)}</Chip></div>
+      <h1 class="display pd-hero__title" data-split>{p.name}</h1>
+      <p class="mono pd-hero__coords">{coords}</p>
+    </div>
+  </section>
+
+  <section class="pd-facts">
+    <div class="container">
+      <dl class="facts" data-stagger="70">
+        <div data-reveal><dt class="mono">{tr('project.capacity')}</dt><dd>{p.capacity}</dd></div>
+        <div data-reveal><dt class="mono">{tr('project.location')}</dt><dd>{t(p.location, lang)}, {t(p.country, lang)}</dd></div>
+        <div data-reveal><dt class="mono">{tr('project.year')}</dt><dd>{p.year}</dd></div>
+        <div data-reveal><dt class="mono">{tr('project.status')}</dt><dd>{t(statusLabel[p.status], lang)}</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container pd-body">
+      <div class="prose">
+        <p class="pd-summary">{t(p.summary, lang)}</p>
+        {t(p.body, lang).map((para) => <p>{para}</p>)}
+      </div>
+      <aside class="pd-aside">
+        <ul class="kpis" role="list">
+          {p.facts.map((f) => <li data-reveal><strong>{f.value}</strong><span>{t(f.label, lang)}</span></li>)}
+        </ul>
+        {sol && (
+          <a class="pd-sol" href={detailPath('solutions', sol.slug[lang], lang)}>
+            <Icon name={sol.icon} size={26} />
+            <span><small class="mono">{tr('nav.solutions')}</small>{t(sol.title, lang)}</span>
+            <Icon name="arrow-up-right" size={18} />
+          </a>
+        )}
+        <Button href={path('contact', lang)} variant="dark">{tr('cta.talk')}</Button>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section surface-alt">
+    <div class="container">
+      <SectionHeader eyebrow={tr('project.related')} title={tr('project.related')} align="split">
+        <Button href={path('projects', lang)} variant="ghost">{tr('cta.viewAll')}</Button>
+      </SectionHeader>
+      <div class="grid3" data-stagger="90">{related.map((r) => <div data-reveal><ProjectCard project={r} lang={lang} /></div>)}</div>
+    </div>
+  </section>
+  <CtaBand lang={lang} />
+</BaseLayout>
+<style>
+  .pd-hero { position: relative; min-height: min(88svh, 820px); display: flex; align-items: flex-end; overflow: hidden; }
+  .pd-hero__media { position: absolute; inset: 0; }
+  .pd-hero__media :global(img) { height: 100%; animation: kenburns 18s var(--ease-out) both; }
+  @keyframes kenburns { from { transform: scale(1.12); } to { transform: scale(1); } }
+  .pd-hero__shade { position: absolute; inset: 0; background: linear-gradient(0deg, var(--c-ink) 5%, rgb(12 19 16 / 0.45) 50%, rgb(12 19 16 / 0.6) 100%); }
+  .pd-hero__inner { position: relative; z-index: 2; display: grid; gap: var(--space-5); justify-items: start; padding-block: 140px var(--space-7); }
+  .pd-hero__chips { display: flex; gap: 0.5rem; }
+  .pd-hero__coords { font-size: var(--fs-sm); color: var(--c-sun); letter-spacing: 0.08em; }
+  .facts { display: grid; grid-template-columns: repeat(2, 1fr); border-bottom: 1px solid var(--c-line); }
+  @media (min-width: 900px) { .facts { grid-template-columns: repeat(4, 1fr); } }
+  .facts > div { padding: var(--space-6) var(--space-5) var(--space-6) 0; display: grid; gap: 0.4rem; }
+  .facts dt { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--c-muted); }
+  .facts dd { font-size: var(--fs-lg); letter-spacing: -0.02em; font-weight: 500; }
+  .pd-body { display: grid; gap: var(--space-8); }
+  @media (min-width: 1000px) { .pd-body { grid-template-columns: 1.4fr 0.8fr; } }
+  .pd-summary { font-size: var(--fs-xl); line-height: 1.25; letter-spacing: -0.025em; }
+  .pd-aside { display: grid; gap: var(--space-5); align-content: start; justify-items: start; }
+  .kpis { display: grid; gap: 1px; width: 100%; background: var(--c-line); border: 1px solid var(--c-line); border-radius: var(--radius-lg); overflow: hidden; }
+  .kpis li { display: grid; gap: 0.2rem; padding: var(--space-5); background: var(--c-white); }
+  .kpis strong { font-size: var(--fs-2xl); font-weight: 500; letter-spacing: -0.045em; line-height: 1; }
+  .kpis span { color: var(--c-muted); font-size: var(--fs-sm); }
+  .pd-sol { display: grid; grid-template-columns: auto 1fr auto; gap: var(--space-4); align-items: center; width: 100%; padding: var(--space-5); border-radius: var(--radius); background: var(--c-sun); font-weight: 500; }
+  .pd-sol small { display: block; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.7; }
+  .grid3 { display: grid; gap: var(--space-5); }
+  @media (min-width: 800px) { .grid3 { grid-template-columns: repeat(3, 1fr); } }
+  @media (prefers-reduced-motion: reduce) { .pd-hero__media :global(img) { animation: none; } }
+</style>

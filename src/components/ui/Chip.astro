@@ -1,0 +1,13 @@
+---
+interface Props { tone?: 'default' | 'sun' | 'dark' | 'leaf'; class?: string; dot?: boolean }
+const { tone = 'default', class: className = '', dot = false } = Astro.props;
+---
+<span class:list={['chip', `chip--${tone}`, className]}>{dot && <i class="chip__dot" aria-hidden="true"></i>}<slot /></span>
+<style>
+  .chip { display: inline-flex; align-items: center; gap: 0.5em; padding: 0.4em 0.75em; border-radius: var(--radius-pill); font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; border: 1px solid var(--c-line); background: color-mix(in srgb, var(--c-white) 60%, transparent); }
+  .chip--sun { background: var(--c-sun); border-color: var(--c-sun); color: var(--c-ink); }
+  .chip--dark { background: rgb(12 19 16 / 0.72); color: var(--c-paper); border-color: rgb(255 255 255 / 0.12); backdrop-filter: blur(8px); }
+  .chip--leaf { color: var(--c-leaf); border-color: color-mix(in srgb, var(--c-leaf) 40%, transparent); }
+  .chip__dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 0 currentColor; animation: pulse 2.2s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 60%, transparent); } 80%, 100% { box-shadow: 0 0 0 8px transparent; } }
+</style>

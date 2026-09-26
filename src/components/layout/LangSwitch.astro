@@ -1,0 +1,45 @@
+---
+import { languages, useT, type Lang } from '../../i18n';
+interface Props { lang: Lang; alternates: Partial<Record<Lang, string>>; class?: string }
+const { lang, alternates, class: className = '' } = Astro.props;
+const tr = useT(lang);
+---
+<nav class:list={['lang', className]} aria-label={tr('lang.switch')}>
+  {(Object.keys(languages) as Lang[]).map((l) => (
+    <a href={alternates[l] ?? (l === 'es' ? '/' : '/en/')} hreflang={l} lang={l} aria-current={l === lang ? 'true' : undefined} title={languages[l]}>{l.toUpperCase()}</a>
+  ))}
+</nav>
+<style>
+  /* Control segmentado: mitades a ras, la activa se rellena por completo con el
+     acento y el texto pasa a blanco. Se adapta a fondo claro y oscuro. */
+  .lang {
+    display: inline-flex;
+    align-items: stretch;
+    border: 1px solid color-mix(in srgb, currentColor 26%, transparent);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    line-height: 1;
+  }
+  .lang a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.5rem;
+    padding: 0.42rem 0.55rem;
+    color: color-mix(in srgb, currentColor 62%, transparent);
+    transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+  }
+  .lang a + a { border-left: 1px solid color-mix(in srgb, currentColor 26%, transparent); }
+  .lang a:hover { color: currentColor; }
+  .lang a[aria-current] {
+    background: var(--c-sun);
+    color: var(--c-white);
+    border-color: var(--c-sun);
+  }
+  /* La separación hereda el color del acento cuando linda con la mitad activa */
+  .lang a[aria-current] + a,
+  .lang a:has(+ a[aria-current]) { border-color: transparent; }
+</style>

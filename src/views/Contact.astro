@@ -1,0 +1,63 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import ContactForm from '../components/sections/ContactForm.astro';
+import Icon from '../components/ui/Icon.astro';
+import { t, useT, type Lang } from '../i18n';
+import { site, offices } from '../data/site';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const tr = useT(lang);
+const c = {
+  es: { title: 'Hablemos de energía', accent: 'energía', lead: 'Cuéntanos tu proyecto y un especialista te responderá en menos de 48 horas laborables.', meta: 'Contacto', direct: 'Contacto directo', press: 'Prensa', pressMail: 'prensa@geolight.com', land: '¿Tienes terreno?', landText: 'Envíanos la referencia catastral y te decimos en 10 días si es viable.', hours: 'Lunes a viernes · 8:30 – 18:00 CET' },
+  en: { title: "Let's talk energy", accent: 'energy', lead: 'Tell us about your project and a specialist will reply within 48 business hours.', meta: 'Contact', direct: 'Direct contact', press: 'Press', pressMail: 'press@geolight.com', land: 'Own land?', landText: 'Send us the parcel reference and we will tell you within 10 days whether it is viable.', hours: 'Monday to Friday · 8:30 – 18:00 CET' },
+}[lang];
+const ld = { '@context': 'https://schema.org', '@type': 'ContactPage', name: c.meta, url: new URL(Astro.url.pathname, Astro.site).href };
+---
+<BaseLayout lang={lang} title={c.meta} description={c.lead} routeKey="contact" jsonLd={[ld]}>
+  <PageHero lang={lang} title={c.title} accent={c.accent} lead={c.lead} eyebrow={tr('nav.contact')} crumbs={[{ label: tr('nav.contact') }]} />
+  <section class="section">
+    <div class="container contact">
+      <div class="contact__form" data-reveal><ContactForm lang={lang} /></div>
+      <aside class="contact__aside">
+        <div class="box surface-dark" data-reveal>
+          <p class="mono box__h">{c.direct}</p>
+          <a href={`mailto:${site.email}`} class="box__big">{site.email}</a>
+          <a href={`tel:${site.phoneHref}`} class="box__big">{site.phone}</a>
+          <p class="box__small"><Icon name="clock" size={16} /> {c.hours}</p>
+          <p class="box__small"><Icon name="envelope-simple" size={16} /> {c.press}: <a href={`mailto:${c.pressMail}`}>{c.pressMail}</a></p>
+        </div>
+        <div class="box box--sun" data-reveal>
+          <Icon name="map-trifold" size={30} />
+          <p class="h4">{c.land}</p>
+          <p>{c.landText}</p>
+        </div>
+        <ul class="offices" role="list">
+          {offices.map((o) => (
+            <li data-reveal>
+              <span class="offices__city">{o.city}</span>
+              <span class="mono offices__role">{t(o.role, lang)}</span>
+              <span class="muted">{o.address} · {t(o.country, lang)}</span>
+            </li>
+          ))}
+        </ul>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>
+<style>
+  .contact { display: grid; gap: var(--space-8); align-items: start; }
+  @media (min-width: 1000px) { .contact { grid-template-columns: 1.4fr 1fr; } }
+  .contact__aside { display: grid; gap: var(--space-4); }
+  .box { display: grid; gap: var(--space-3); padding: var(--space-6); border-radius: var(--radius-lg); }
+  .box__h { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--c-sun); }
+  .box__big { font-size: var(--fs-lg); letter-spacing: -0.02em; }
+  .box__big:hover { color: var(--c-sun); }
+  .box__small { display: flex; gap: 0.5rem; align-items: center; font-size: var(--fs-sm); color: var(--c-muted-dark); }
+  .box__small a { color: var(--c-paper); }
+  .box--sun { background: var(--c-sun); }
+  .offices { border-top: 1px solid var(--c-line); }
+  .offices li { display: grid; gap: 0.15rem; padding: var(--space-4) 0; border-bottom: 1px solid var(--c-line); font-size: var(--fs-sm); }
+  .offices__city { font-size: var(--fs-md); font-weight: 500; }
+  .offices__role { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--c-ember); }
+</style>

@@ -1,0 +1,63 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import NewsCard from '../components/sections/NewsCard.astro';
+import CtaBand from '../components/sections/CtaBand.astro';
+import { useT, type Lang } from '../i18n';
+import { getNews, newsHref, readingTime } from '../lib/news';
+import type { PhotoKey } from '../data/images';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const tr = useT(lang);
+const posts = await getNews(lang);
+const [first, ...rest] = posts;
+const cats = [...new Set(posts.map((p) => p.data.category))];
+const c = {
+  es: { title: 'Noticias y análisis del sector solar', accent: 'análisis', lead: 'Hitos de nuestros proyectos, innovación en operación y almacenamiento, y datos del mercado eléctrico del sur de Europa.', meta: 'Noticias' },
+  en: { title: 'News and insight from the solar sector', accent: 'insight', lead: 'Project milestones, innovation in operations and storage, and power market data from Southern Europe.', meta: 'News' },
+}[lang];
+---
+<BaseLayout lang={lang} title={c.meta} description={c.lead} routeKey="news">
+  <PageHero lang={lang} title={c.title} accent={c.accent} lead={c.lead} eyebrow={tr('nav.news')} crumbs={[{ label: tr('nav.news') }]} />
+  <section class="section" data-news>
+    <div class="container">
+      <div class="filters" role="toolbar">
+        <button class="filter is-active" data-cat="all" aria-pressed="true">{tr('news.all')}</button>
+        {cats.map((ct) => <button class="filter" data-cat={ct} aria-pressed="false">{ct}</button>)}
+      </div>
+      {first && (
+        <div class="featured" data-reveal data-item={first.data.category}>
+          <NewsCard featured href={newsHref(first)} title={first.data.title} excerpt={first.data.description} date={first.data.date} category={first.data.category} photo={first.data.photo as PhotoKey} lang={lang} readingTime={readingTime(first)} />
+        </div>
+      )}
+      <div class="grid" data-stagger="90">
+        {rest.map((n) => (
+          <div data-reveal data-item={n.data.category}>
+            <NewsCard href={newsHref(n)} title={n.data.title} excerpt={n.data.description} date={n.data.date} category={n.data.category} photo={n.data.photo as PhotoKey} lang={lang} readingTime={readingTime(n)} />
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+  <CtaBand lang={lang} />
+</BaseLayout>
+<style>
+  .filters { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: var(--space-7); }
+  .filter { padding: 0.65rem 1.1rem; border-radius: var(--radius-pill); border: 1px solid var(--c-line); font-size: var(--fs-sm); }
+  .filter:hover { border-color: var(--c-ink); }
+  .filter.is-active { background: var(--c-ink); color: var(--c-paper); border-color: var(--c-ink); }
+  .featured { padding-bottom: var(--space-7); margin-bottom: var(--space-7); border-bottom: 1px solid var(--c-line); }
+  .grid { display: grid; gap: var(--space-7) var(--space-6); }
+  @media (min-width: 900px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+  [hidden] { display: none !important; }
+</style>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-news]').forEach((root) => {
+    const btns = root.querySelectorAll<HTMLButtonElement>('[data-cat]');
+    const items = root.querySelectorAll<HTMLElement>('[data-item]');
+    btns.forEach((b) => b.addEventListener('click', () => {
+      btns.forEach((x) => { x.classList.toggle('is-active', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+      items.forEach((it) => { it.hidden = b.dataset.cat !== 'all' && it.dataset.item !== b.dataset.cat; });
+    }));
+  });
+</script>

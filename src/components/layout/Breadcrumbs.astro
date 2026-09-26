@@ -1,0 +1,29 @@
+---
+import { path, useT, type Lang } from '../../i18n';
+import Icon from '../ui/Icon.astro';
+interface Props { lang: Lang; items: { label: string; href?: string }[] }
+const { lang, items } = Astro.props;
+const tr = useT(lang);
+const all = [{ label: tr('breadcrumb.home'), href: path('home', lang) }, ...items];
+const base = Astro.site!;
+const ld = { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: all.map((it, i) => ({ '@type': 'ListItem', position: i + 1, name: it.label, ...(it.href ? { item: new URL(it.href, base).href } : {}) })) };
+---
+<nav class="bc mono" aria-label="Breadcrumb">
+  <ol role="list">
+    {all.map((it, i) => (
+      <li>
+        {it.href && i < all.length - 1 ? <a href={it.href}>{it.label}</a> : <span aria-current="page">{it.label}</span>}
+        {i < all.length - 1 && <Icon name="caret-down" size={12} class="bc__sep" />}
+      </li>
+    ))}
+  </ol>
+</nav>
+<script type="application/ld+json" set:html={JSON.stringify(ld)} />
+<style>
+  .bc ol { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.08em; }
+  .bc li { display: inline-flex; align-items: center; gap: 0.5rem; }
+  .bc a { opacity: 0.65; transition: opacity var(--dur-fast); }
+  .bc a:hover { opacity: 1; }
+  .bc :global(.bc__sep) { transform: rotate(-90deg); opacity: 0.5; }
+  .bc [aria-current] { color: var(--c-sun); }
+</style>

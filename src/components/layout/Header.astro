@@ -1,0 +1,1767 @@
+---
+/**
+ * GEOLIGHT — Header
+ *
+ * - Desktop:
+ *   - navegación principal
+ *   - mega-menú de soluciones
+ *   - CTA
+ *
+ * - Mobile:
+ *   - navegación fullscreen
+ *   - hamburger de 3 líneas → X
+ *   - sin CTA "Hablemos"
+ *   - submenú de soluciones
+ *
+ * - El header mantiene siempre:
+ *   - misma altura
+ *   - misma posición del logo
+ *   - mismo tamaño del logo
+ *   - posición fixed
+ *   - visible durante el scroll
+ */
+
+import Icon from '../ui/Icon.astro';
+import Halftone from '../ui/Halftone.astro';
+import LangSwitch from './LangSwitch.astro';
+
+import { path, detailPath, useT, t, type Lang, type RouteKey } from '../../i18n';
+
+import { solutions } from '../../data/solutions';
+import { site } from '../../data/site';
+
+interface Props {
+  lang: Lang;
+  alternates: Partial<Record<Lang, string>>;
+  theme?: 'dark' | 'light';
+  current?: RouteKey;
+}
+
+const { lang, alternates, theme = 'light', current } = Astro.props;
+
+const tr = useT(lang);
+
+const links: { key: RouteKey; label: string }[] = [
+  {
+    key: 'about',
+    label: tr('nav.about'),
+  },
+  {
+    key: 'solutions',
+    label: tr('nav.solutions'),
+  },
+  {
+    key: 'projects',
+    label: tr('nav.projects'),
+  },
+  {
+    key: 'sustainability',
+    label: tr('nav.sustainability'),
+  },
+  {
+    key: 'careers',
+    label: tr('nav.careers'),
+  },
+  {
+    key: 'news',
+    label: tr('nav.news'),
+  },
+];
+---
+
+<header class="hdr" data-theme={theme} data-header>
+  <!-- ================================================================
+       HEADER BAR
+       ================================================================ -->
+
+  <div class="hdr__bar container">
+    <!-- ================================================================
+         LOGO
+         ================================================================ -->
+
+    <a href={path('home', lang)} class="hdr__logo" aria-label={`${site.name} — ${tr('breadcrumb.home')}`}>
+      <img class="logo-navy" src="/logo-navy.png" width="152" height="51" alt={site.name} />
+      <img class="logo-light" src="/logo-light.png" width="152" height="51" alt="" aria-hidden="true" />
+    </a>
+
+    <!-- ================================================================
+         DESKTOP NAVIGATION
+         ================================================================ -->
+
+    <nav class="hdr__nav" aria-label="Principal">
+      <ul role="list">
+        {links.map((l) => (
+          <li
+            class:list={{
+              'has-mega': l.key === 'solutions',
+            }}
+          >
+            {l.key === 'solutions' ? (
+              <>
+                <!-- SOLUTIONS TOGGLE -->
+
+                <button
+                  type="button"
+                  class="hdr__link hdr__link--button"
+                  aria-expanded="false"
+                  aria-controls="mega"
+                  aria-current={current === l.key ? 'page' : undefined}
+                  data-mega-toggle
+                >
+                  <span>{l.label}</span>
+
+                  <Icon name="caret-down" size={13} class="hdr__caret" />
+                </button>
+
+                <!-- ======================================================
+                     MEGA MENU
+                     ====================================================== -->
+
+                <div class="mega" id="mega" data-mega aria-hidden="true">
+                  <div class="mega__inner container">
+                    <ul class="mega__grid" role="list">
+                      {solutions.map((s) => (
+                        <li>
+                          <a class="mega__item" href={detailPath('solutions', s.slug[lang], lang)}>
+                            <span class="mega__icon">
+                              <Icon name={s.icon} size={21} />
+                            </span>
+
+                            <span class="mega__code mono">{s.code}</span>
+
+                            <span class="mega__title">{t(s.title, lang)}</span>
+
+                            <span class="mega__text">{t(s.short, lang)}</span>
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <a class="mega__feature" href={path('solutions', lang)}>
+                      <Halftone id="aerialPlant" lang={lang} ratio={4 / 5} reveal sizes="260px" />
+
+                      <span class="mega__feature-label">
+                        <span>{tr('nav.allSolutions')}</span>
+
+                        <Icon name="arrow-up-right" size={17} />
+                      </span>
+                    </a>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <a class="hdr__link" href={path(l.key, lang)} aria-current={current === l.key ? 'page' : undefined}>
+                {l.label}
+              </a>
+            )}
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <!-- ================================================================
+         ACTIONS
+         ================================================================ -->
+
+    <div class="hdr__actions">
+      <!-- DESKTOP LANGUAGE -->
+
+      <LangSwitch lang={lang} alternates={alternates} class="hdr__lang" />
+
+      <!-- DESKTOP CTA -->
+
+      <a href={path('contact', lang)} class="hdr__cta">
+        <span>{tr('cta.talk')}</span>
+
+        <Icon name="arrow-up-right" size={15} />
+      </a>
+
+      <!-- MOBILE MENU -->
+
+      <button
+        type="button"
+        class="hdr__burger"
+        aria-expanded="false"
+        aria-controls="drawer"
+        aria-label={tr('nav.menu')}
+        data-drawer-toggle
+      >
+        <span class="visually-hidden">{tr('nav.menu')}</span>
+
+        <span class="hdr__burger-lines" aria-hidden="true">
+          <i></i>
+          <i></i>
+          <i></i>
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================================================================
+       MOBILE DRAWER
+       ================================================================ -->
+
+  <div class="drawer" id="drawer" data-drawer aria-hidden="true">
+    <div class="drawer__inner container">
+      <!-- ============================================================
+           MOBILE NAV
+           ============================================================ -->
+
+      <nav class="drawer__nav" aria-label="Mobile">
+        <ul class="drawer__list" role="list">
+          {links.map((l, i) => (
+            <li
+              class:list={{
+                'drawer__item--solutions': l.key === 'solutions',
+              }}
+              style={`--i:${i}`}
+            >
+              {l.key === 'solutions' ? (
+                <>
+                  <!-- SOLUTIONS TOGGLE -->
+
+                  <button
+                    type="button"
+                    class="drawer__solution-toggle"
+                    aria-expanded="false"
+                    aria-controls="mobile-solutions"
+                    data-mobile-solutions-toggle
+                  >
+                    <span class="drawer__number mono">{String(i + 1).padStart(2, '0')}</span>
+
+                    <span class="drawer__label">{l.label}</span>
+
+                    <span class="drawer__plus" aria-hidden="true">
+                      <i></i>
+                      <i></i>
+                    </span>
+                  </button>
+
+                  <!-- MOBILE SOLUTIONS -->
+
+                  <div class="drawer__solutions" id="mobile-solutions" data-mobile-solutions aria-hidden="true">
+                    <ul role="list">
+                      {solutions.map((s) => (
+                        <li>
+                          <a href={detailPath('solutions', s.slug[lang], lang)} data-drawer-link>
+                            <span class="drawer__solution-code mono">{s.code}</span>
+
+                            <span class="drawer__solution-name">{t(s.title, lang)}</span>
+
+                            <Icon name="arrow-up-right" size={15} />
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <a class="drawer__all-solutions" href={path('solutions', lang)} data-drawer-link>
+                      <span>{tr('nav.allSolutions')}</span>
+
+                      <Icon name="arrow-up-right" size={16} />
+                    </a>
+                  </div>
+                </>
+              ) : (
+                <a href={path(l.key, lang)} data-drawer-link>
+                  <span class="drawer__number mono">{String(i + 1).padStart(2, '0')}</span>
+
+                  <span class="drawer__label">{l.label}</span>
+
+                  <Icon name="arrow-up-right" size={17} class="drawer__arrow" />
+                </a>
+              )}
+            </li>
+          ))}
+
+          <!-- CONTACT -->
+
+          <li style={`--i:${links.length}`}>
+            <a href={path('contact', lang)} data-drawer-link>
+              <span class="drawer__number mono">{String(links.length + 1).padStart(2, '0')}</span>
+
+              <span class="drawer__label">{tr('nav.contact')}</span>
+
+              <Icon name="arrow-up-right" size={17} class="drawer__arrow" />
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- ============================================================
+           DRAWER FOOT
+           ============================================================ -->
+
+      <div class="drawer__foot">
+        <div class="drawer__language">
+          <LangSwitch lang={lang} alternates={alternates} />
+        </div>
+
+        <div class="drawer__contact">
+          <a href={`mailto:${site.email}`} class="drawer__contact-link mono">
+            {site.email}
+          </a>
+
+          <a href={`tel:${site.phoneHref}`} class="drawer__contact-link mono">
+            {site.phone}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<style>
+  /* ======================================================================
+         HEADER
+         ====================================================================== */
+
+  .hdr {
+    --header-h: 74px;
+
+    position: fixed;
+
+    top: 0;
+    left: 0;
+    right: 0;
+
+    /*
+                     * Capa superior estable.
+                     * Importante para Safari/iOS.
+                     */
+    z-index: 1000;
+
+    /*
+                     * Crea un nuevo contexto de apilamiento.
+                     */
+    isolation: isolate;
+
+    color: var(--c-ink);
+
+    background: transparent;
+
+    transition:
+      background var(--dur) var(--ease-out),
+      color var(--dur) var(--ease-out),
+      box-shadow var(--dur) var(--ease-out);
+  }
+
+  .hdr[data-theme='dark'] {
+    color: var(--c-paper);
+  }
+
+  /*
+       * HEADER DESPUÉS DEL SCROLL
+       *
+       * IMPORTANTE:
+       * No usamos backdrop-filter.
+       *
+       * Safari/iOS puede tener problemas con:
+       *
+       * position: fixed
+       * +
+       * backdrop-filter
+       * +
+       * scroll
+       *
+       * y provocar que el botón quede fuera de la capa táctil.
+       */
+
+  .hdr.is-scrolled {
+    color: var(--c-ink);
+
+    background: rgb(246 246 248 / 0.96);
+
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+
+    box-shadow:
+      0 1px 0 rgb(17 26 74 / 0.07),
+      0 8px 28px rgb(17 26 74 / 0.035);
+  }
+
+  .hdr.is-open {
+    color: var(--c-paper);
+
+    background: var(--c-ink);
+  }
+
+  .hdr.mega-open {
+    color: var(--c-ink);
+
+    background: rgb(246 246 248 / 0.98);
+  }
+
+  /* ======================================================================
+         HEADER BAR
+         ====================================================================== */
+
+  .hdr__bar {
+    height: var(--header-h);
+
+    display: flex;
+    align-items: center;
+
+    gap: 2rem;
+  }
+
+  /* ======================================================================
+         LOGO
+         ====================================================================== */
+
+  .hdr__logo {
+    position: relative;
+
+    z-index: 1050;
+
+    display: flex;
+    align-items: center;
+
+    flex: 0 0 auto;
+
+    height: 40px;
+
+    transition: opacity var(--dur-fast) var(--ease-out);
+  }
+
+  .hdr__logo img {
+    display: block;
+    width: auto;
+    height: clamp(40px, 3.5vw, 58px);
+    max-width: none;
+    object-fit: contain;
+    object-position: left center;
+  }
+
+  .hdr__logo .logo-light {
+    display: none;
+  }
+
+  .hdr[data-theme='dark']:not(.is-scrolled):not(.mega-open) .logo-navy,
+  .hdr.is-open .logo-navy {
+    display: none;
+  }
+
+  .hdr[data-theme='dark']:not(.is-scrolled):not(.mega-open) .logo-light,
+  .hdr.is-open .logo-light {
+    display: block;
+  }
+
+  /* ======================================================================
+         DESKTOP NAV
+         ====================================================================== */
+
+  .hdr__nav {
+    margin-inline: auto;
+  }
+
+  .hdr__nav > ul {
+    display: flex;
+    align-items: center;
+
+    gap: clamp(1rem, 1.7vw, 1.9rem);
+  }
+
+  .hdr__nav li {
+    position: static;
+  }
+
+  .hdr__link {
+    position: relative;
+
+    display: inline-flex;
+    align-items: center;
+
+    gap: 0.35rem;
+
+    min-height: 40px;
+
+    padding: 0;
+
+    border: 0;
+    background: none;
+
+    color: inherit;
+
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 450;
+
+    letter-spacing: -0.005em;
+
+    opacity: 0.78;
+
+    cursor: pointer;
+
+    transition:
+      opacity var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+  }
+
+  .hdr__link:hover {
+    opacity: 1;
+  }
+
+  .hdr__link[aria-current='page'],
+  .hdr__link[aria-expanded='true'] {
+    opacity: 1;
+  }
+
+  :global(.hdr__caret) {
+    opacity: 0.6;
+
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+
+  .hdr__link[aria-expanded='true'] :global(.hdr__caret) {
+    transform: rotate(180deg);
+  }
+
+  /* ======================================================================
+         ACTIONS
+         ====================================================================== */
+
+  .hdr__actions {
+    position: relative;
+
+    z-index: 1050;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    flex: 0 0 auto;
+
+    gap: 0.7rem;
+  }
+
+  .hdr__lang {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* ======================================================================
+         CTA
+         ====================================================================== */
+
+  .hdr__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 0.55rem;
+
+    min-height: 42px;
+
+    padding: 0 1.05rem;
+
+    border: 1px solid var(--c-ink);
+    border-radius: 999px;
+
+    background: var(--c-ink);
+    color: var(--c-white);
+
+    font-size: 0.8rem;
+    font-weight: 550;
+
+    letter-spacing: 0.005em;
+
+    white-space: nowrap;
+
+    transition:
+      background var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out),
+      border-color var(--dur-fast) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out),
+      box-shadow var(--dur-fast) var(--ease-out);
+  }
+
+  .hdr__cta :global(svg) {
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+
+  .hdr__cta:hover {
+    background: var(--c-sun);
+    border-color: var(--c-sun);
+    color: var(--c-white);
+
+    box-shadow: 0 6px 18px rgb(17 26 74 / 0.12);
+  }
+
+  .hdr__cta:hover :global(svg) {
+    transform: translate(2px, -2px);
+  }
+
+  .hdr__cta:active {
+    transform: translateY(1px);
+  }
+
+  .hdr[data-theme='dark']:not(.is-scrolled):not(.mega-open) .hdr__cta {
+    background: var(--c-paper);
+    border-color: var(--c-paper);
+    color: var(--c-ink);
+  }
+
+  .hdr[data-theme='dark']:not(.is-scrolled):not(.mega-open) .hdr__cta:hover {
+    background: var(--c-sun);
+    border-color: var(--c-sun);
+    color: var(--c-white);
+  }
+
+  /* ======================================================================
+         MEGA MENU
+         ====================================================================== */
+
+  .mega {
+    position: absolute;
+
+    inset: 100% 0 auto;
+
+    color: var(--c-ink);
+    background: rgb(246 246 248 / 0.98);
+
+    border-top: 1px solid var(--c-line);
+    border-bottom: 1px solid var(--c-line);
+
+    box-shadow: 0 24px 60px rgb(17 26 74 / 0.1);
+
+    visibility: hidden;
+    opacity: 0;
+
+    transform: translateY(-8px);
+
+    transition:
+      opacity var(--dur) var(--ease-out),
+      transform var(--dur) var(--ease-out),
+      visibility 0s linear var(--dur);
+  }
+
+  .mega.is-open {
+    visibility: visible;
+    opacity: 1;
+
+    transform: none;
+
+    transition-delay: 0s;
+  }
+
+  .mega__inner {
+    display: grid;
+
+    grid-template-columns:
+      minmax(0, 1fr)
+      250px;
+
+    gap: 3rem;
+
+    padding-block: 2rem 2.25rem;
+  }
+
+  .mega__grid {
+    display: grid;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    align-content: start;
+  }
+
+  .mega__grid > li {
+    border-bottom: 1px solid var(--c-line);
+  }
+
+  .mega__grid > li:nth-child(-n + 2) {
+    border-top: 1px solid var(--c-line);
+  }
+
+  .mega__item {
+    display: grid;
+
+    grid-template-columns:
+      40px
+      minmax(0, 1fr)
+      auto;
+
+    grid-template-areas:
+      'icon title code'
+      'icon text text';
+
+    column-gap: 1rem;
+    row-gap: 0.25rem;
+
+    min-height: 104px;
+
+    padding: 1.15rem 1rem;
+
+    border: 1px solid transparent;
+
+    transition:
+      background var(--dur-fast) var(--ease-out),
+      border-color var(--dur-fast) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out);
+  }
+
+  .mega__item:hover {
+    background: var(--c-white);
+    border-color: var(--c-line);
+
+    transform: translateY(-1px);
+  }
+
+  .mega__icon {
+    grid-area: icon;
+
+    display: grid;
+    place-items: center;
+
+    width: 40px;
+    height: 40px;
+
+    border-radius: 10px;
+
+    background: var(--c-ink);
+    color: var(--c-sun);
+  }
+
+  .mega__code {
+    grid-area: code;
+
+    align-self: start;
+
+    color: var(--c-muted);
+
+    font-size: 0.68rem;
+    line-height: 1;
+
+    white-space: nowrap;
+  }
+
+  .mega__title {
+    grid-area: title;
+
+    align-self: center;
+
+    font-size: 0.95rem;
+    font-weight: 500;
+
+    letter-spacing: -0.01em;
+  }
+
+  .mega__text {
+    grid-area: text;
+
+    max-width: 42ch;
+
+    color: var(--c-muted);
+
+    font-size: 0.78rem;
+    line-height: 1.45;
+  }
+
+  .mega__feature {
+    position: relative;
+
+    display: block;
+
+    min-height: 270px;
+
+    overflow: hidden;
+
+    border-radius: var(--radius);
+
+    background: var(--c-ink);
+  }
+
+  .mega__feature :global(.ht) {
+    position: absolute;
+
+    inset: 0;
+
+    aspect-ratio: auto !important;
+
+    height: 100%;
+  }
+
+  .mega__feature-label {
+    position: absolute;
+
+    z-index: 3;
+
+    inset: auto 1rem 1rem;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0.72rem 0.85rem;
+
+    border: 1px solid rgb(255 255 255 / 0.16);
+    border-radius: var(--radius-sm);
+
+    color: var(--c-paper);
+    background: rgb(17 26 74 / 0.72);
+
+    backdrop-filter: blur(8px);
+
+    font-size: 0.78rem;
+    font-weight: 500;
+  }
+
+  /* ======================================================================
+         HAMBURGER
+         ====================================================================== */
+
+  .hdr__burger {
+    position: relative;
+
+    /*
+                     * MUY IMPORTANTE EN SAFARI
+                     */
+    z-index: 1100;
+
+    display: none;
+
+    width: 32px;
+    height: 32px;
+
+    flex: 0 0 32px;
+
+    padding: 0;
+
+    border: 0;
+    border-radius: 0;
+
+    background: transparent;
+    color: inherit;
+
+    cursor: pointer;
+
+    pointer-events: auto;
+
+    touch-action: manipulation;
+
+    -webkit-tap-highlight-color: transparent;
+
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .hdr__burger-lines {
+    position: relative;
+
+    display: block;
+
+    width: 22px;
+    height: 18px;
+
+    margin: auto;
+  }
+
+  .hdr__burger-lines i {
+    position: absolute;
+
+    left: 0;
+
+    display: block;
+
+    width: 22px;
+    height: 1.5px;
+
+    margin: 0;
+
+    background: currentColor;
+
+    transform-origin: center;
+
+    transition:
+      top var(--dur) var(--ease-out),
+      transform var(--dur) var(--ease-out),
+      opacity var(--dur-fast) var(--ease-out);
+  }
+
+  .hdr__burger-lines i:nth-child(1) {
+    top: 1px;
+  }
+
+  .hdr__burger-lines i:nth-child(2) {
+    top: 8px;
+  }
+
+  .hdr__burger-lines i:nth-child(3) {
+    top: 15px;
+  }
+
+  .hdr.is-open .hdr__burger-lines i:nth-child(1) {
+    top: 8px;
+
+    transform: rotate(45deg);
+  }
+
+  .hdr.is-open .hdr__burger-lines i:nth-child(2) {
+    opacity: 0;
+  }
+
+  .hdr.is-open .hdr__burger-lines i:nth-child(3) {
+    top: 8px;
+
+    transform: rotate(-45deg);
+  }
+
+  /* ======================================================================
+         DRAWER
+         ====================================================================== */
+
+  .drawer {
+    position: fixed;
+
+    inset: var(--header-h) 0 0;
+
+    /*
+                     * Por debajo del header y por encima
+                     * del contenido de la página.
+                     */
+    z-index: 900;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    -webkit-overflow-scrolling: touch;
+
+    overscroll-behavior: contain;
+
+    touch-action: pan-y;
+
+    color: var(--c-paper);
+    background: var(--c-ink);
+
+    visibility: hidden;
+    opacity: 0;
+
+    pointer-events: none;
+
+    transform: translateY(-8px);
+
+    transition:
+      opacity var(--dur) var(--ease-out),
+      transform var(--dur) var(--ease-out),
+      visibility 0s linear var(--dur);
+  }
+
+  .hdr.is-open .drawer {
+    visibility: visible;
+
+    opacity: 1;
+
+    pointer-events: auto;
+
+    transform: none;
+
+    transition-delay: 0s;
+  }
+
+  .drawer__inner {
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: space-between;
+
+    min-height: 100%;
+
+    padding-block: 1.25rem 2rem;
+
+    gap: 3rem;
+  }
+
+  .drawer__list li {
+    border-bottom: 1px solid var(--c-line-dark);
+
+    opacity: 0;
+
+    transform: translateY(14px);
+
+    transition:
+      opacity var(--dur) var(--ease-out),
+      transform var(--dur) var(--ease-out);
+
+    transition-delay: calc(var(--i) * 40ms + 60ms);
+  }
+
+  .hdr.is-open .drawer__list li {
+    opacity: 1;
+
+    transform: none;
+  }
+
+  /* ======================================================================
+         DRAWER LINKS
+         ====================================================================== */
+
+  .drawer__list a {
+    display: flex;
+
+    align-items: center;
+
+    gap: 1rem;
+
+    min-height: 64px;
+
+    padding: 0.9rem 0;
+
+    color: var(--c-paper);
+
+    font-size: clamp(1.45rem, 7vw, 2.2rem);
+
+    font-weight: 450;
+
+    letter-spacing: -0.035em;
+
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  .drawer__list a:hover {
+    color: var(--c-sun-soft);
+  }
+
+  .drawer__number {
+    flex: 0 0 1.6rem;
+
+    color: var(--c-sun);
+
+    font-size: 0.68rem;
+
+    line-height: 1;
+  }
+
+  .drawer__label {
+    flex: 1;
+  }
+
+  .drawer__arrow {
+    flex: 0 0 auto;
+
+    opacity: 0.45;
+
+    transition:
+      opacity var(--dur-fast) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out);
+  }
+
+  .drawer__list a:hover .drawer__arrow {
+    opacity: 1;
+
+    transform: translate(2px, -2px);
+  }
+
+  /* ======================================================================
+         DRAWER FOOT
+         ====================================================================== */
+
+  .drawer__foot {
+    display: flex;
+
+    align-items: flex-end;
+
+    justify-content: space-between;
+
+    gap: 2rem;
+
+    padding-top: 1.25rem;
+
+    border-top: 1px solid var(--c-line-dark);
+
+    color: var(--c-muted-dark);
+
+    font-size: 0.75rem;
+  }
+
+  .drawer__language {
+    flex: 0 0 auto;
+  }
+
+  .drawer__contact {
+    display: grid;
+
+    justify-items: end;
+
+    gap: 0.45rem;
+  }
+
+  .drawer__contact-link {
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  .drawer__contact-link:hover {
+    color: var(--c-paper);
+  }
+
+  /* ======================================================================
+         MOBILE SOLUTIONS
+         ====================================================================== */
+
+  .drawer__item--solutions {
+    position: relative;
+  }
+
+  .drawer__solution-toggle {
+    display: flex;
+
+    align-items: center;
+
+    width: 100%;
+
+    min-height: 64px;
+
+    padding: 0.9rem 0;
+
+    border: 0;
+
+    background: transparent;
+
+    color: var(--c-paper);
+
+    font: inherit;
+
+    font-size: clamp(1.45rem, 7vw, 2.2rem);
+
+    font-weight: 450;
+
+    letter-spacing: -0.035em;
+
+    text-align: left;
+
+    cursor: pointer;
+
+    touch-action: manipulation;
+
+    -webkit-tap-highlight-color: transparent;
+
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .drawer__solution-toggle .drawer__number {
+    flex: 0 0 1.6rem;
+
+    margin-right: 1rem;
+  }
+
+  .drawer__solution-toggle .drawer__label {
+    flex: 1;
+  }
+
+  /* ======================================================================
+         PLUS → MINUS
+         ====================================================================== */
+
+  .drawer__plus {
+    position: relative;
+
+    flex: 0 0 18px;
+
+    width: 18px;
+    height: 18px;
+
+    margin-left: 1rem;
+  }
+
+  .drawer__plus i {
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+
+    width: 14px;
+    height: 1px;
+
+    background: currentColor;
+
+    transform: translate(-50%, -50%);
+
+    transition:
+      transform var(--dur-fast) var(--ease-out),
+      opacity var(--dur-fast) var(--ease-out);
+  }
+
+  .drawer__plus i:last-child {
+    transform: translate(-50%, -50%) rotate(90deg);
+  }
+
+  .drawer__solution-toggle[aria-expanded='true'] .drawer__plus i:last-child {
+    opacity: 0;
+
+    transform: translate(-50%, -50%) rotate(90deg) scale(0.5);
+  }
+
+  /* ======================================================================
+         MOBILE SOLUTIONS CONTAINER
+         ====================================================================== */
+
+  .drawer__solutions {
+    display: grid;
+
+    grid-template-rows: 0fr;
+
+    overflow: hidden;
+
+    opacity: 0;
+
+    transition:
+      grid-template-rows var(--dur) var(--ease-out),
+      opacity var(--dur-fast) var(--ease-out);
+  }
+
+  .drawer__solutions > ul {
+    min-height: 0;
+
+    overflow: hidden;
+  }
+
+  .drawer__solutions.is-open {
+    grid-template-rows: 1fr;
+
+    opacity: 1;
+  }
+
+  /* ======================================================================
+         MOBILE SOLUTION ITEMS
+         ====================================================================== */
+
+  .drawer__solutions li {
+    border-top: 1px solid var(--c-line-dark);
+  }
+
+  .drawer__solutions li:first-child {
+    border-top: 0;
+  }
+
+  .drawer__solutions a {
+    display: grid;
+
+    grid-template-columns:
+      2.5rem
+      minmax(0, 1fr)
+      auto;
+
+    align-items: center;
+
+    min-height: 48px;
+
+    padding: 0.55rem 0 0.55rem 2.6rem;
+
+    gap: 0.8rem;
+
+    color: var(--c-muted-dark);
+
+    font-size: 0.9rem;
+
+    font-weight: 450;
+
+    letter-spacing: -0.01em;
+
+    transition:
+      color var(--dur-fast) var(--ease-out),
+      padding-left var(--dur-fast) var(--ease-out);
+  }
+
+  .drawer__solutions a:hover {
+    padding-left: 2.8rem;
+
+    color: var(--c-paper);
+  }
+
+  .drawer__solution-code {
+    color: var(--c-sun);
+
+    font-size: 0.62rem;
+
+    line-height: 1;
+  }
+
+  .drawer__solution-name {
+    min-width: 0;
+  }
+
+  .drawer__solutions a :global(svg) {
+    opacity: 0.4;
+
+    transition:
+      opacity var(--dur-fast) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out);
+  }
+
+  .drawer__solutions a:hover :global(svg) {
+    opacity: 1;
+
+    transform: translate(2px, -2px);
+  }
+
+  /* ======================================================================
+         ALL SOLUTIONS
+         ====================================================================== */
+
+  .drawer__all-solutions {
+    display: flex !important;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    margin-top: 0.5rem;
+
+    padding: 0.75rem 0 0.75rem 2.6rem !important;
+
+    border-top: 1px solid var(--c-line-dark);
+
+    color: var(--c-paper) !important;
+
+    font-size: 0.78rem !important;
+
+    font-weight: 500 !important;
+
+    letter-spacing: 0 !important;
+  }
+
+  .drawer__all-solutions:hover {
+    padding-left: 2.8rem !important;
+  }
+
+  /* ======================================================================
+         TABLET
+         ====================================================================== */
+
+  @media (max-width: 1120px) {
+    .hdr__nav,
+    .hdr__lang,
+    .hdr__cta {
+      display: none;
+    }
+
+    .hdr__burger {
+      display: block;
+    }
+
+    .hdr__actions {
+      width: 32px;
+      height: 32px;
+
+      margin-left: auto;
+
+      gap: 0;
+    }
+
+    .mega {
+      display: none !important;
+    }
+
+    .hdr.mega-open {
+      color: inherit;
+
+      background: transparent;
+    }
+  }
+
+  /* ======================================================================
+         MOBILE
+         ====================================================================== */
+
+  @media (max-width: 640px) {
+    .hdr {
+      --header-h: 68px;
+    }
+
+    .hdr__bar {
+      height: var(--header-h);
+
+      gap: 0.7rem;
+    }
+
+    .hdr__logo {
+      height: 34px;
+    }
+
+    .hdr__burger {
+      width: 32px;
+      height: 32px;
+    }
+
+    .drawer {
+      inset: var(--header-h) 0 0;
+    }
+
+    .drawer__inner {
+      padding-block: 1rem 1.5rem;
+    }
+
+    .drawer__list a {
+      min-height: 62px;
+    }
+
+    .drawer__foot {
+      align-items: flex-start;
+
+      flex-direction: column;
+
+      gap: 1.25rem;
+    }
+
+    .drawer__contact {
+      justify-items: start;
+    }
+  }
+
+  /* ======================================================================
+         REDUCED MOTION
+         ====================================================================== */
+
+  @media (prefers-reduced-motion: reduce) {
+    .hdr,
+    .hdr *,
+    .mega,
+    .drawer {
+      transition: none !important;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * GEOLIGHT HEADER
+   *
+   * - Header siempre fixed
+   * - Nunca se oculta al hacer scroll
+   * - Fondo cambia al hacer scroll
+   * - Hamburger funciona después del scroll
+   * - Compatible con Safari/iPhone
+   * - Drawer mobile
+   * - Mega menu desktop
+   * - Mobile solutions submenu
+   *
+   * IMPORTANTE:
+   * NO bloqueamos document.body.
+   *
+   * Safari/iOS tiene un comportamiento delicado
+   * con position: fixed + overflow hidden en body.
+   */
+
+  const initHeader = () => {
+    const hdr = document.querySelector<HTMLElement>('[data-header]');
+
+    if (!hdr) {
+      return;
+    }
+
+    /* ================================================================
+     ELEMENTS
+     ================================================================ */
+
+    const burger = hdr.querySelector<HTMLButtonElement>('[data-drawer-toggle]');
+
+    const drawer = hdr.querySelector<HTMLElement>('[data-drawer]');
+
+    const drawerLinks = hdr.querySelectorAll<HTMLAnchorElement>('[data-drawer-link]');
+
+    const toggle = hdr.querySelector<HTMLButtonElement>('[data-mega-toggle]');
+
+    const mega = hdr.querySelector<HTMLElement>('[data-mega]');
+
+    const megaItem = toggle?.closest<HTMLElement>('li');
+
+    const mobileSolutionsToggle = hdr.querySelector<HTMLButtonElement>('[data-mobile-solutions-toggle]');
+
+    const mobileSolutions = hdr.querySelector<HTMLElement>('[data-mobile-solutions]');
+
+    /*
+     * Si no existen los elementos esenciales,
+     * no continuamos.
+     */
+
+    if (!burger || !drawer) {
+      return;
+    }
+
+    /* ================================================================
+     MOBILE SOLUTIONS
+     ================================================================ */
+
+    const setMobileSolutions = (open: boolean) => {
+      if (!mobileSolutionsToggle || !mobileSolutions) {
+        return;
+      }
+
+      mobileSolutionsToggle.setAttribute('aria-expanded', String(open));
+
+      mobileSolutions.setAttribute('aria-hidden', String(!open));
+
+      mobileSolutions.classList.toggle('is-open', open);
+    };
+
+    mobileSolutionsToggle?.addEventListener('click', (event) => {
+      event.preventDefault();
+
+      event.stopPropagation();
+
+      const isOpen = mobileSolutionsToggle.getAttribute('aria-expanded') === 'true';
+
+      setMobileSolutions(!isOpen);
+    });
+
+    /* ================================================================
+     HEADER SCROLL
+     ================================================================ */
+
+    const onScroll = () => {
+      const y = window.scrollY || window.pageYOffset || 0;
+
+      /*
+       * SOLO cambiamos el aspecto visual.
+       *
+       * Nunca escondemos el header.
+       */
+
+      hdr.classList.toggle('is-scrolled', y > 24);
+    };
+
+    onScroll();
+
+    window.addEventListener('scroll', onScroll, {
+      passive: true,
+    });
+
+    /* ================================================================
+     MEGA MENU
+     ================================================================ */
+
+    let closeTimer: number | undefined;
+
+    let openedAt = 0;
+
+    const clearMegaTimer = () => {
+      if (closeTimer !== undefined) {
+        window.clearTimeout(closeTimer);
+
+        closeTimer = undefined;
+      }
+    };
+
+    const setMega = (open: boolean) => {
+      if (!toggle || !mega) {
+        return;
+      }
+
+      clearMegaTimer();
+
+      if (open) {
+        openedAt = performance.now();
+      }
+
+      toggle.setAttribute('aria-expanded', String(open));
+
+      mega.setAttribute('aria-hidden', String(!open));
+
+      mega.classList.toggle('is-open', open);
+
+      hdr.classList.toggle('mega-open', open);
+    };
+
+    toggle?.addEventListener('click', (event) => {
+      event.preventDefault();
+
+      event.stopPropagation();
+
+      const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+
+      if (isOpen && performance.now() - openedAt < 250) {
+        return;
+      }
+
+      setMega(!isOpen);
+    });
+
+    /*
+     * Hover únicamente en dispositivos
+     * con ratón/puntero preciso.
+     */
+
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      megaItem?.addEventListener('mouseenter', () => {
+        clearMegaTimer();
+
+        setMega(true);
+      });
+
+      megaItem?.addEventListener('mouseleave', () => {
+        clearMegaTimer();
+
+        closeTimer = window.setTimeout(() => {
+          setMega(false);
+        }, 180);
+      });
+    }
+
+    /* ================================================================
+     DRAWER
+     ================================================================ */
+
+    const setDrawer = (open: boolean) => {
+      /*
+       * Cerramos mega menu al abrir
+       * el menú mobile.
+       */
+
+      if (open) {
+        setMega(false);
+
+        setMobileSolutions(false);
+      } else {
+        setMobileSolutions(false);
+      }
+
+      /*
+       * Estado ARIA.
+       */
+
+      burger.setAttribute('aria-expanded', String(open));
+
+      drawer.setAttribute('aria-hidden', String(!open));
+
+      /*
+       * Estado visual.
+       */
+
+      hdr.classList.toggle('is-open', open);
+
+      /*
+       * Label accesible.
+       */
+
+      burger.setAttribute('aria-label', open ? 'Cerrar menú' : burger.dataset.menuLabel || 'Abrir menú');
+    };
+
+    /* ================================================================
+     BURGER LABEL
+     ================================================================ */
+
+    if (!burger.dataset.menuLabel) {
+      burger.dataset.menuLabel = burger.getAttribute('aria-label') || 'Abrir menú';
+    }
+
+    /* ================================================================
+     BURGER CLICK
+     ================================================================ */
+
+    burger.addEventListener('click', (event) => {
+      event.preventDefault();
+
+      event.stopPropagation();
+
+      const isOpen = burger.getAttribute('aria-expanded') === 'true';
+
+      setDrawer(!isOpen);
+    });
+
+    /* ================================================================
+     CLOSE DRAWER ON LINK
+     ================================================================ */
+
+    drawerLinks.forEach((link) => {
+      link.addEventListener('click', () => {
+        setDrawer(false);
+      });
+    });
+
+    /* ================================================================
+     ESCAPE
+     ================================================================ */
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') {
+        return;
+      }
+
+      setMega(false);
+
+      setMobileSolutions(false);
+
+      setDrawer(false);
+    });
+
+    /* ================================================================
+     CLICK OUTSIDE MEGA
+     ================================================================ */
+
+    document.addEventListener('click', (event) => {
+      const target = event.target;
+
+      if (!(target instanceof Node)) {
+        return;
+      }
+
+      if (megaItem && !megaItem.contains(target)) {
+        setMega(false);
+      }
+    });
+
+    /* ================================================================
+     RESIZE
+     ================================================================ */
+
+    let resizeTimer: number | undefined;
+
+    const onResize = () => {
+      if (resizeTimer !== undefined) {
+        window.clearTimeout(resizeTimer);
+      }
+
+      resizeTimer = window.setTimeout(() => {
+        /*
+         * Desktop:
+         * cerrar drawer.
+         */
+
+        if (window.innerWidth > 1120) {
+          setDrawer(false);
+
+          setMobileSolutions(false);
+        }
+
+        /*
+         * Tablet/mobile:
+         * cerrar mega menu.
+         */
+
+        if (window.innerWidth <= 1120) {
+          setMega(false);
+        }
+      }, 120);
+    };
+
+    window.addEventListener('resize', onResize, {
+      passive: true,
+    });
+
+    /* ================================================================
+     INITIAL STATE
+     ================================================================ */
+
+    setMega(false);
+
+    setMobileSolutions(false);
+
+    burger.setAttribute('aria-expanded', 'false');
+
+    drawer.setAttribute('aria-hidden', 'true');
+
+    hdr.classList.remove('is-open');
+  };
+
+  /* ================================================================
+   INIT
+   ================================================================ */
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initHeader, {
+      once: true,
+    });
+  } else {
+    initHeader();
+  }
+</script>

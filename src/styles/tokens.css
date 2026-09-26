@@ -1,0 +1,103 @@
+/* =========================================================================
+   GEOLIGHT — DESIGN TOKENS  (light · Column-inspired)
+   -------------------------------------------------------------------------
+   Único archivo para re-colorear la web. Todos los componentes leen de aquí.
+   Paleta: lienzo casi blanco (#f6f6f8), azul índigo institucional (#111a4a),
+   verde seafoam para datos/acento (#167e6c) y naranja señal (#ec652b) como
+   acento raro. El degradado espectral SOLO vive en el mapa de puntos del hero.
+   ========================================================================= */
+
+:root {
+  /* ---- Neutros / tinta -------------------------------------------------- */
+  --c-ink: #111a4a; /* Índigo navy — texto principal, superficies oscuras, CTA */
+  --c-ink-2: #0d1440; /* Navy más profundo (footer, banda CTA) */
+  --c-ink-3: #2a3570; /* Bordes/hairlines sobre navy */
+  --c-paper: #f6f6f8; /* Lienzo de página (cloud canvas) */
+  --c-paper-2: #edeef3; /* Superficie clara alterna */
+  --c-white: #ffffff;
+
+  /* ---- Acentos ---------------------------------------------------------- */
+  --c-sun: #43cab4; /* Seafoam — acento principal (chips, iconos, datos, texto de acento) */
+  --c-sun-soft: #9fe6d3; /* Seafoam claro — rellenos suaves */
+  --c-ember: #ec652b; /* Naranja señal — acento cálido, úsalo con moderación */
+  --c-sky: #88deeb; /* Cian suave — washes decorativos */
+  --c-leaf: #167e6c; /* Verde estados OK / sostenibilidad (= seafoam) */
+
+  --c-muted: #6b7280; /* Texto secundario sobre claro (steel) */
+  --c-muted-dark: #a9acb6; /* Texto secundario sobre navy (fog) */
+  --c-line: rgb(17 26 74 / 0.12);
+  --c-line-dark: rgb(255 255 255 / 0.14);
+
+  /* ---- Degradados ------------------------------------------------------- */
+  --grad-sun: linear-gradient(120deg, var(--c-ink) 0%, var(--c-sun) 100%);
+  --grad-dawn:
+    radial-gradient(120% 90% at 78% 8%, rgb(22 126 108 / 0.1), transparent 60%),
+    radial-gradient(90% 70% at 15% 0%, rgb(17 26 74 / 0.06), transparent 65%);
+  /* Espectro del mapa de puntos (uso EXCLUSIVO del hero DotMap) */
+  --map-spectrum: #d65620, #e08b3f, #9f7aee, #4575cd, #71d2f0, #44b48b, #f4df69;
+
+  /* ---- Tipografía ------------------------------------------------------- */
+  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --font-serif: 'Instrument Serif', 'Times New Roman', serif;
+
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-base: 1rem;
+  --fs-md: clamp(1.05rem, 0.98rem + 0.3vw, 1.2rem);
+  --fs-lg: clamp(1.25rem, 1.1rem + 0.6vw, 1.6rem);
+  --fs-xl: clamp(1.6rem, 1.3rem + 1.3vw, 2.4rem);
+  --fs-2xl: clamp(2.1rem, 1.5rem + 2.6vw, 3.6rem);
+  --fs-3xl: clamp(2.6rem, 1.6rem + 4.4vw, 5.4rem);
+  --fs-display: clamp(3rem, 1.6rem + 6vw, 7rem);
+
+  --lh-tight: 1.02;
+  --lh-snug: 1.12;
+  --lh-body: 1.6;
+  --tracking-tight: -0.03em;
+  --tracking-wide: 0.14em;
+
+  /* ---- Espaciado y layout ---------------------------------------------- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+  --section-y: clamp(4rem, 3rem + 5vw, 7.5rem);
+  --container: 1240px;
+  --gutter: clamp(1rem, 0.5rem + 2.4vw, 2.5rem);
+
+  /* ---- Formas ----------------------------------------------------------- */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* ---- Sombras y movimiento (suaves, estilo banca-producto) ------------- */
+  --shadow-sm: 0 1px 3px rgb(17 26 74 / 0.06), 0 1px 0 rgb(17 26 74 / 0.03);
+  --shadow: 0 8px 24px -12px rgb(17 26 74 / 0.18), 0 2px 6px rgb(17 26 74 / 0.06);
+  --shadow-lg: 0 30px 60px -28px rgb(17 26 74 / 0.28), 0 8px 20px -12px rgb(17 26 74 / 0.14);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 170ms;
+  --dur: 380ms;
+  --dur-slow: 820ms;
+
+  /* ---- Botones ---------------------------------------------------------- */
+  --btn-radius: var(--radius);
+  --btn-primary-bg: var(--c-ink); /* CTA principal: navy (estilo Column) */
+  --btn-primary-fg: var(--c-white);
+  --btn-primary-hover: var(--c-sun); /* al pasar el ratón: seafoam */
+  --btn-dark-bg: var(--c-ink);
+  --btn-dark-fg: var(--c-paper);
+  --btn-dark-hover: var(--c-sun);
+
+  /* ---- Halftone (fotos tramadas) --------------------------------------- */
+  --ht-dot: 7px;
+  --ht-ink: var(--c-ink); /* puntos navy */
+  --ht-paper: var(--c-paper-2);
+}

@@ -1,0 +1,253 @@
+---
+/**
+ * GLOBAL INFRASTRUCTURE MAP — fondo interactivo del hero (y reutilizable).
+ * =============================================================================
+ * PRINCIPIOS (no es una réplica de ningún sitio): infraestructura global,
+ * precisión, escala, confianza institucional, visualización de datos, geometría
+ * y movimiento extremadamente sutil. El mundo NO es un mapa cartográfico: es una
+ * silueta continental ABSTRACTA construida con una matriz de puntos, sobre la que
+ * viaja una red mínima de rutas + nodos + "data packets".
+ *
+ * TÉCNICA: un único <canvas> (no miles de nodos DOM) dibuja puntos, rutas, nodos y
+ * packets. Es procedural y está subordinado a la geografía — nunca un
+ * particle-background aleatorio. Se pausa fuera de viewport y respeta
+ * prefers-reduced-motion.
+ *
+ * TODOS los valores viven en MAP_CONFIG (abajo). Cambia la variante sin tocar la
+ * lógica: variant="v1" (balanced · por defecto) · "v2" (subtle) · "v3" (expressive).
+ * Los colores se leen de tokens.css (--c-ink, --c-sun) -> recolorear = editar tokens.
+ * =============================================================================
+ */
+import world from '../../data/worldmap.json';
+
+interface Props { variant?: 'v1' | 'v2' | 'v3'; align?: 'right' | 'center'; class?: string }
+const { variant = 'v1', align = 'right', class: className = '' } = Astro.props;
+
+/* ---- Proyección (idéntica a la usada para generar worldmap.json) ------------ */
+const PROJ = { W: world.width, H: world.height, lonMin: -168, lonMax: 190, latMax: 78, latMin: -56 };
+const sx = PROJ.W / (PROJ.lonMax - PROJ.lonMin);
+const px = (lon: number, lat: number) => [(lon - PROJ.lonMin) * sx, (PROJ.latMax - lat) * sx] as [number, number];
+
+/* ---- Hubs (coordenadas reales -> geometría con sentido, no aleatoria) -------- */
+const HUB = {
+  sf: px(-122.4, 37.8), ny: px(-74, 40.7), sao: px(-46.6, -23.5),
+  ldn: px(-0.1, 51.5), fra: px(8.7, 50.1), dxb: px(55.3, 25.2),
+  mum: px(72.9, 19), sgp: px(103.8, 1.35), tok: px(139.7, 35.7), syd: px(151.2, -33.9),
+};
+/* Rutas = infraestructura financiera/datos (pocas y relevantes). packet/ via opcionales */
+const ROUTES = [
+  { a: HUB.ny, b: HUB.ldn, bend: -0.10, packet: true },
+  { a: HUB.fra, b: HUB.sgp, bend: 0.12, packet: true, via: HUB.dxb },
+  { a: HUB.sf, b: HUB.ny, bend: -0.08, packet: true },
+  { a: HUB.ldn, b: HUB.dxb, bend: 0.10 },
+  { a: HUB.dxb, b: HUB.tok, bend: -0.10, via: HUB.mum },
+  { a: HUB.ny, b: HUB.sao, bend: 0.10 },
+  { a: HUB.sgp, b: HUB.syd, bend: 0.08 },
+];
+const NODES = Object.values(HUB).map(([x, y]) => ({ x, y, active: [HUB.ldn, HUB.sgp, HUB.ny].some((h) => h[0] === x && h[1] === y) }));
+
+/* ============================ MAP_CONFIG ==================================== *
+ * subtle (v2)  ·  balanced (v1)  ·  expressive (v3) — misma API, sin tocar lógica.
+ * dotOpacity, ramp, edgeFade controlan la matriz; route/node/packet la red;
+ * cursor y parallax la interacción; breathe y packet la animación.
+ * ---------------------------------------------------------------------------- */
+const MAP_CONFIG = {
+  v2: { stride: 1, dotRadius: 1.05, dotOpacity: 0.2, ramp: [0.4, 0.82], edgeFade: 0.14, tealFrom: 0.5,
+        routes: true, routeOpacity: 0.26, routeWidth: 0.9, nodeOpacity: 0.5, nodeRadius: 2.4, activeNodes: 1,
+        animate: true, breathe: 0.05, breatheSpeed: 0.32, packets: 1, packetSpeed: 0.04, packetSize: 1.7,
+        cursorRadius: 110, cursorStrength: 0.3, cursorShift: 1.2, parallax: 2, intro: true },
+  v1: { stride: 1, dotRadius: 1.1, dotOpacity: 0.24, ramp: [0.32, 0.92], edgeFade: 0.13, tealFrom: 0.48,
+        routes: true, routeOpacity: 0.3, routeWidth: 0.95, nodeOpacity: 0.7, nodeRadius: 2.6, activeNodes: 2,
+        animate: true, breathe: 0.07, breatheSpeed: 0.45, packets: 2, packetSpeed: 0.05, packetSize: 1.9,
+        cursorRadius: 128, cursorStrength: 0.4, cursorShift: 1.9, parallax: 3, intro: true },
+  v3: { stride: 1, dotRadius: 1.35, dotOpacity: 0.42, ramp: [0.5, 1.0], edgeFade: 0.1, tealFrom: 0.4,
+        routes: true, routeOpacity: 0.6, routeWidth: 1.2, nodeOpacity: 1.0, nodeRadius: 3.6, activeNodes: 5,
+        animate: true, breathe: 0.14, breatheSpeed: 0.7, packets: 5, packetSpeed: 0.08, packetSize: 2.6,
+        cursorRadius: 170, cursorStrength: 0.7, cursorShift: 3.2, parallax: 6, intro: true },
+};
+
+const payload = JSON.stringify({ world, proj: { W: PROJ.W, H: PROJ.H }, routes: ROUTES, nodes: NODES, cfg: MAP_CONFIG[variant], align });
+---
+<div class:list={['gim', className]} aria-hidden="true">
+  <canvas class="gim__canvas"></canvas>
+  <script type="application/json" class="gim__data" set:html={payload}></script>
+</div>
+
+<style>
+  .gim { position: absolute; inset: 0; overflow: hidden; }
+  .gim__canvas { width: 100%; height: 100%; display: block; }
+  .gim__data { display: none; }
+</style>
+
+<script>
+  type P = [number, number];
+  interface Cfg {
+    stride: number; dotRadius: number; dotOpacity: number; ramp: [number, number]; edgeFade: number; tealFrom: number;
+    routes: boolean; routeOpacity: number; routeWidth: number; nodeOpacity: number; nodeRadius: number; activeNodes: number;
+    animate: boolean; breathe: number; breatheSpeed: number; packets: number; packetSpeed: number; packetSize: number;
+    cursorRadius: number; cursorStrength: number; cursorShift: number; parallax: number; intro: boolean;
+  }
+  const hex = (s: string): [number, number, number] => { const n = parseInt(s.trim().replace('#', ''), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+  const mix = (a: number[], b: number[], t: number) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+  const smooth = (e0: number, e1: number, x: number) => { const t = Math.max(0, Math.min(1, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
+
+  function init(root: HTMLElement) {
+    const canvas = root.querySelector<HTMLCanvasElement>('.gim__canvas');
+    const data = root.querySelector<HTMLScriptElement>('.gim__data');
+    if (!canvas || !data) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const { world, proj, routes: routesRaw, nodes, cfg, align } = JSON.parse(data.textContent!) as
+      { world: { dots: [number, number, number][] }; proj: { W: number; H: number }; routes: any[]; nodes: any[]; cfg: Cfg; align: 'right' | 'center' };
+
+    const MW = proj.W, MH = proj.H;
+    const alignX = align === 'center' ? 0.5 : 1;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const coarse = matchMedia('(hover: none), (pointer: coarse)').matches;
+    const small = matchMedia('(max-width: 760px)').matches;
+    const stride = cfg.stride * (small ? 2 : 1);
+    const useCursor = !coarse && !small && !reduce;
+    const useParallax = useCursor;
+    const usePackets = cfg.animate && !reduce && !small;
+    const useBreathe = cfg.animate && !reduce;
+
+    const css = getComputedStyle(document.documentElement);
+    const ink = hex(css.getPropertyValue('--c-ink') || '#111a4a');
+    const sun = hex(css.getPropertyValue('--c-sun') || '#167e6c');
+    const dotA = mix(ink, [255, 255, 255], 0.12);
+    const dotB = mix(mix(ink, sun, 0.55), [255, 255, 255], 0.05);
+    const rgb = (c: number[], a: number) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
+
+    type Dot = { x: number; y: number; c: number[]; base: number; ph: number };
+    const dots: Dot[] = [];
+    for (let i = 0; i < world.dots.length; i += stride) {
+      const [x, y] = world.dots[i];
+      const teal = smooth(cfg.tealFrom, 1, x / MW);
+      const ramp = cfg.ramp[0] + (cfg.ramp[1] - cfg.ramp[0]) * (x / MW);
+      const edge = smooth(0, cfg.edgeFade, y / MH) * smooth(0, cfg.edgeFade, 1 - y / MH);
+      dots.push({ x, y, c: mix(dotA, dotB, teal), base: cfg.dotOpacity * ramp * (0.6 + 0.4 * edge), ph: (x * 0.9 + y * 1.7) % 6.283 });
+    }
+
+    const buildRoute = (r: any) => {
+      const pts: P[] = [];
+      const segs: [P, P][] = r.via ? [[r.a, r.via], [r.via, r.b]] : [[r.a, r.b]];
+      for (const [a, b] of segs) {
+        const mx2 = (a[0] + b[0]) / 2, my2 = (a[1] + b[1]) / 2, dx = b[0] - a[0], dy = b[1] - a[1];
+        const cx = mx2 - dy * r.bend, cy = my2 + dx * r.bend, N = 90;
+        for (let i = 0; i <= N; i++) { const t = i / N, it = 1 - t; pts.push([it * it * a[0] + 2 * it * t * cx + t * t * b[0], it * it * a[1] + 2 * it * t * cy + t * t * b[1]]); }
+      }
+      return pts;
+    };
+    const routes = (routesRaw as any[]).map((r) => ({ pts: buildRoute(r), packet: !!r.packet }));
+    const packetRoutes = routes.filter((r) => r.packet).slice(0, cfg.packets);
+    const packets = packetRoutes.map((r, i) => ({ pts: r.pts, t: i / Math.max(1, packetRoutes.length), sp: cfg.packetSpeed * (0.8 + 0.4 * Math.random()) }));
+
+    let W = 0, H = 0, dpr = 1, scale = 1, ox = 0, oy = 0, rScale = 1;
+    let running = false, raf = 0, last = 0, t0 = 0;
+    const target = { x: 0, y: 0 }, pointer = { x: 0, y: 0 };
+    let mx = -9999, my = -9999;
+
+    function resize() {
+      const rect = canvas!.getBoundingClientRect();
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = rect.width; H = rect.height;
+      canvas!.width = Math.round(W * dpr); canvas!.height = Math.round(H * dpr);
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      scale = Math.max(W / MW, H / MH) * 1.06;
+      ox = (W - MW * scale) * alignX; oy = (H - MH * scale) * 0.5;
+      rScale = Math.max(0.85, Math.min(1.6, W / 1100));
+      draw(performance.now());
+    }
+    const S = (p: P, dx = 0, dy = 0): P => [ox + p[0] * scale + dx, oy + p[1] * scale + dy];
+
+    function draw(now: number) {
+      const t = (now - t0) / 1000;
+      if (useParallax) { pointer.x += (target.x - pointer.x) * 0.06; pointer.y += (target.y - pointer.y) * 0.06; }
+      const introT = cfg.intro && !reduce ? Math.min(1.3, t / 1.3) : 2;
+      const breathe = useBreathe ? cfg.breathe : 0;
+      ctx!.clearRect(0, 0, W, H);
+
+      const pdx = useParallax ? pointer.x * cfg.parallax : 0, pdy = useParallax ? pointer.y * cfg.parallax : 0;
+      for (let i = 0; i < dots.length; i++) {
+        const d = dots[i];
+        let X = ox + d.x * scale + pdx, Y = oy + d.y * scale + pdy;
+        if (X < -8 || X > W + 8 || Y < -8 || Y > H + 8) continue;
+        let a = d.base;
+        if (cfg.intro && !reduce) { const app = smooth(d.x / MW - 0.16, d.x / MW, introT); if (app <= 0) continue; a *= app; }
+        if (breathe) a *= 1 - breathe * (0.5 - 0.5 * Math.cos(t * cfg.breatheSpeed + d.ph));
+        let r = cfg.dotRadius * rScale;
+        if (useCursor && mx > -9000) {
+          const ddx = X - mx, ddy = Y - my, dist = Math.hypot(ddx, ddy);
+          if (dist < cfg.cursorRadius) {
+            const inf = 1 - dist / cfg.cursorRadius;
+            a = Math.min(0.9, a + inf * cfg.cursorStrength); r += inf * cfg.cursorShift * 0.4;
+            const push = (inf * cfg.cursorShift) / (dist || 1); X += ddx * push; Y += ddy * push;
+          }
+        }
+        ctx!.globalAlpha = a; ctx!.fillStyle = rgb(d.c, 1);
+        ctx!.beginPath(); ctx!.arc(X, Y, r, 0, 6.283); ctx!.fill();
+      }
+
+      const rdx = useParallax ? pointer.x * cfg.parallax * 1.4 : 0, rdy = useParallax ? pointer.y * cfg.parallax * 1.4 : 0;
+      ctx!.lineWidth = cfg.routeWidth * Math.max(1, rScale * 0.9); ctx!.lineCap = 'round';
+      for (const r of routes) {
+        const vis = cfg.intro && !reduce ? smooth(0.15, 1, introT) : 1;
+        if (vis <= 0) continue;
+        ctx!.globalAlpha = cfg.routeOpacity * vis; ctx!.strokeStyle = rgb(mix(ink, sun, 0.35), 1);
+        ctx!.beginPath();
+        for (let i = 0; i < r.pts.length; i++) { const q = S(r.pts[i], rdx, rdy); i ? ctx!.lineTo(q[0], q[1]) : ctx!.moveTo(q[0], q[1]); }
+        ctx!.stroke();
+      }
+
+      if (usePackets) {
+        for (const pk of packets) {
+          pk.t = (pk.t + pk.sp * 0.016) % 1;
+          const idx = pk.t * (pk.pts.length - 1); const p = pk.pts[Math.floor(idx)] || pk.pts[0];
+          for (let k = 0; k < 4; k++) {
+            const tp = Math.max(0, idx - k * 2.5); const pp = pk.pts[Math.floor(tp)] || p; const qq = S(pp, rdx, rdy);
+            ctx!.globalAlpha = 0.7 - k * 0.16; ctx!.fillStyle = rgb(sun, 1);
+            ctx!.beginPath(); ctx!.arc(qq[0], qq[1], cfg.packetSize * (1 - k * 0.12) * rScale, 0, 6.283); ctx!.fill();
+          }
+        }
+      }
+
+      const ndx = useParallax ? pointer.x * cfg.parallax * 1.7 : 0, ndy = useParallax ? pointer.y * cfg.parallax * 1.7 : 0;
+      let activeCount = 0;
+      for (const n of nodes) {
+        const vis = cfg.intro && !reduce ? smooth(0.4, 1, introT) : 1;
+        if (vis <= 0) continue;
+        const q = S([n.x, n.y], ndx, ndy);
+        const active = n.active && activeCount < cfg.activeNodes; if (active) activeCount++;
+        const baseR = cfg.nodeRadius * rScale;
+        if (active && !reduce && cfg.animate) {
+          const pulse = 0.5 + 0.5 * Math.sin(t * 1.6 + n.x);
+          ctx!.globalAlpha = 0.18 * vis * (1 - pulse * 0.6); ctx!.fillStyle = rgb(sun, 1);
+          ctx!.beginPath(); ctx!.arc(q[0], q[1], baseR + 4 + pulse * 7, 0, 6.283); ctx!.fill();
+        }
+        ctx!.globalAlpha = cfg.nodeOpacity * vis; ctx!.fillStyle = rgb(active ? sun : mix(ink, [255, 255, 255], 0.05), 1);
+        ctx!.beginPath(); ctx!.arc(q[0], q[1], baseR, 0, 6.283); ctx!.fill();
+        ctx!.globalAlpha = vis; ctx!.lineWidth = 1.2 * rScale; ctx!.strokeStyle = rgb([255, 255, 255], 0.9);
+        ctx!.beginPath(); ctx!.arc(q[0], q[1], baseR, 0, 6.283); ctx!.stroke();
+      }
+      ctx!.globalAlpha = 1;
+    }
+
+    function loop(now: number) { if (!running) return; if (now - last > 33) { draw(now); last = now; } raf = requestAnimationFrame(loop); }
+    const needsLoop = () => (cfg.animate && !reduce) || useCursor || useParallax;
+    const start = () => { if (running) return; running = true; if (!t0) t0 = performance.now(); if (needsLoop()) raf = requestAnimationFrame(loop); else draw(performance.now()); };
+    const stop = () => { running = false; cancelAnimationFrame(raf); };
+
+    new ResizeObserver(resize).observe(canvas);
+    new IntersectionObserver(([e]) => (e.isIntersecting ? start() : stop())).observe(canvas);
+    document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
+    if (useCursor || useParallax) {
+      window.addEventListener('pointermove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        mx = e.clientX - rect.left; my = e.clientY - rect.top;
+        target.x = (e.clientX / window.innerWidth) * 2 - 1; target.y = (e.clientY / window.innerHeight) * 2 - 1;
+      }, { passive: true });
+      window.addEventListener('pointerleave', () => { mx = -9999; my = -9999; });
+    }
+  }
+  document.querySelectorAll<HTMLElement>('.gim').forEach(init);
+</script>

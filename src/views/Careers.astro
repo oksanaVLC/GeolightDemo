@@ -1,0 +1,92 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import SectionHeader from '../components/ui/SectionHeader.astro';
+import Halftone from '../components/ui/Halftone.astro';
+import Icon from '../components/ui/Icon.astro';
+import Button from '../components/ui/Button.astro';
+import Chip from '../components/ui/Chip.astro';
+import CtaBand from '../components/sections/CtaBand.astro';
+import { t, useT, type Lang } from '../i18n';
+import { jobs, benefits, values } from '../data/company';
+import { site } from '../data/site';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const tr = useT(lang);
+const c = {
+  es: { title: 'Trabaja donde la energía cambia de verdad', accent: 'cambia de verdad', lead: 'Buscamos personas curiosas, rigurosas y con ganas de construir infraestructura que dure 30 años. En campo, en oficina o en remoto.', meta: 'Talento — Trabaja en GEOLight', whyE: 'Por qué GEOLight', whyT: 'Proyectos reales, responsabilidad desde el primer día.', whyP: 'Somos lo bastante grandes para construir plantas de 150 MWp y lo bastante pequeños para que tu trabajo se note. El 38 % de nuestros directivos empezó en puestos junior en la compañía.', benE: 'Beneficios', benT: 'Cuidamos a quien cuida los activos.', jobsE: 'Ofertas abiertas', jobsT: 'Únete al equipo', spont: '¿No ves tu puesto? Envíanos tu candidatura espontánea a', gallery: 'Así trabajamos' },
+  en: { title: 'Work where energy really changes', accent: 'really changes', lead: 'We are looking for curious, rigorous people who want to build infrastructure that lasts 30 years. In the field, in the office or remotely.', meta: 'Careers — Work at GEOLight', whyE: 'Why GEOLight', whyT: 'Real projects, real responsibility from day one.', whyP: 'We are big enough to build 150 MWp plants and small enough for your work to matter. 38% of our managers started in junior roles at the company.', benE: 'Benefits', benT: 'We look after the people who look after the assets.', jobsE: 'Open positions', jobsT: 'Join the team', spont: 'Can’t see your role? Send an open application to', gallery: 'How we work' },
+}[lang];
+---
+<BaseLayout lang={lang} title={c.meta} description={c.lead} routeKey="careers">
+  <PageHero lang={lang} title={c.title} accent={c.accent} lead={c.lead} eyebrow={tr('nav.careers')} crumbs={[{ label: tr('nav.careers') }]} photo="engineerSafety">
+    <div data-reveal style="--delay:300ms"><Button href="#jobs" size="lg" icon="arrow-down">{c.jobsE} · {jobs.length}</Button></div>
+  </PageHero>
+
+  <section class="section">
+    <div class="container why">
+      <SectionHeader eyebrow={c.whyE} index="01" title={c.whyT} intro={c.whyP} />
+      <div class="gallery" aria-label={c.gallery}>
+        <div class="g g1" data-reveal="scale"><Halftone id="engineers" lang={lang} tone="sun" ratio={3 / 4} reveal /></div>
+        <div class="g g2" data-reveal="scale" style="--delay:120ms"><Halftone id="installer" lang={lang} tone="sun" ratio={1} reveal /></div>
+        <div class="g g3" data-reveal="scale" style="--delay:240ms"><Halftone id="teamTable" lang={lang} tone="paper" ratio={4 / 3} reveal /></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section surface-alt">
+    <div class="container">
+      <SectionHeader eyebrow={c.benE} index="02" title={c.benT} align="split" />
+      <ul class="benefits" role="list" data-stagger="70">
+        {benefits.map((b) => <li class="benefit" data-reveal><Icon name={b.icon} size={30} /><h3 class="h4">{t(b.title, lang)}</h3><p class="muted">{t(b.text, lang)}</p></li>)}
+      </ul>
+      <ul class="vals" role="list">{values.map((v) => <li><Chip>{t(v.title, lang)}</Chip></li>)}</ul>
+    </div>
+  </section>
+
+  <section class="section" id="jobs">
+    <div class="container">
+      <SectionHeader eyebrow={c.jobsE} index="03" title={c.jobsT} align="split" />
+      <ul class="jobs" role="list">
+        {jobs.map((j) => (
+          <li data-reveal>
+            <a class="job" href={`mailto:${site.careersEmail}?subject=${encodeURIComponent(t(j.title, lang))}`}>
+              <span class="job__title">{t(j.title, lang)}</span>
+              <span class="job__area mono">{t(j.area, lang)}</span>
+              <span class="job__loc"><Icon name="map-pin" size={16} />{j.location}</span>
+              <span class="job__type">{t(j.type, lang)}</span>
+              <span class="job__go"><Icon name="arrow-up-right" size={18} /></span>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <p class="spont">{c.spont} <a href={`mailto:${site.careersEmail}`}>{site.careersEmail}</a></p>
+    </div>
+  </section>
+  <CtaBand lang={lang} />
+</BaseLayout>
+<style>
+  .why { display: grid; gap: var(--space-7); align-items: center; }
+  @media (min-width: 1000px) { .why { grid-template-columns: 1fr 1.1fr; } }
+  .gallery { display: grid; grid-template-columns: 1.1fr 1fr; grid-template-rows: auto auto; gap: var(--space-4); }
+  .g { border-radius: var(--radius-lg); overflow: hidden; }
+  .g1 { grid-row: span 2; }
+  .benefits { display: grid; gap: var(--space-4); }
+  @media (min-width: 700px) { .benefits { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1100px) { .benefits { grid-template-columns: repeat(3, 1fr); } }
+  .benefit { display: grid; gap: var(--space-3); padding: var(--space-6); border-radius: var(--radius-lg); background: var(--c-white); border: 1px solid var(--c-line); align-content: start; }
+  .benefit :global(svg) { color: var(--c-ember); margin-bottom: var(--space-3); }
+  .vals { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: var(--space-6); }
+  .jobs { border-top: 1px solid var(--c-line); }
+  .job { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: var(--space-4); align-items: center; padding: var(--space-5) var(--space-3); border-bottom: 1px solid var(--c-line); transition: background var(--dur-fast), padding var(--dur) var(--ease-out); }
+  .job:hover { background: var(--c-white); padding-left: var(--space-5); }
+  .job__title { font-size: var(--fs-md); font-weight: 500; }
+  .job__area { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--c-muted); }
+  .job__loc { display: inline-flex; gap: 0.3rem; align-items: center; font-size: var(--fs-sm); }
+  .job__type { font-size: var(--fs-sm); color: var(--c-muted); }
+  .job__go { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border-radius: 50%; border: 1px solid var(--c-line); transition: background var(--dur), transform var(--dur) var(--ease-out); }
+  .job:hover .job__go { background: var(--c-sun); border-color: var(--c-sun); transform: rotate(45deg); }
+  @media (max-width: 800px) { .job { grid-template-columns: 1fr auto; } .job__area, .job__type { display: none; } .job__loc { grid-column: 1; } .job__go { grid-row: 1 / span 2; grid-column: 2; } }
+  .spont { margin-top: var(--space-6); color: var(--c-muted); }
+  .spont a { color: var(--c-ink); text-decoration: underline; text-underline-offset: 3px; }
+</style>

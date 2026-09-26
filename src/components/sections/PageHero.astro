@@ -1,0 +1,155 @@
+---
+/** Héroe de páginas interiores: fondo oscuro, imagen de red global, breadcrumbs, título y foto tramada opcional. */
+import type { PhotoKey } from '../../data/images';
+import type { Lang } from '../../i18n';
+import Breadcrumbs from '../layout/Breadcrumbs.astro';
+import Eyebrow from '../ui/Eyebrow.astro';
+import Halftone from '../ui/Halftone.astro';
+
+interface Props {
+  lang: Lang;
+  title: string;
+  accent?: string;
+  lead?: string;
+  eyebrow?: string;
+  crumbs: { label: string; href?: string }[];
+  photo?: PhotoKey;
+  code?: string;
+}
+
+const { lang, title, accent, lead, eyebrow, crumbs, photo, code } = Astro.props;
+
+const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+const html =
+  accent && title.includes(accent)
+    ? esc(title).replace(esc(accent), `<em class="serif accent">${esc(accent)}</em>`)
+    : esc(title);
+---
+
+<section class="ph">
+  <div class="ph__bg" aria-hidden="true">
+    <img src="/images/global_network_4.jpg" alt="" />
+  </div>
+
+  <div class="ph__glow" aria-hidden="true"></div>
+
+  <div class:list={['ph__inner container', { 'has-photo': photo }]}>
+    <div class="ph__text">
+      <Breadcrumbs lang={lang} items={crumbs} />
+
+      {eyebrow && <Eyebrow index={code}>{eyebrow}</Eyebrow>}
+
+      <h1 class="h1 ph__title" data-split set:html={html} />
+
+      {lead && (
+        <p class="lead ph__lead" data-reveal style="--delay:200ms">
+          {lead}
+        </p>
+      )}
+
+      <slot />
+    </div>
+
+    {photo && (
+      <div class="ph__media" data-reveal="scale" style="--delay:150ms">
+        <Halftone
+          id={photo}
+          lang={lang}
+          tone="paper"
+          ratio={4 / 5}
+          reveal
+          loading="eager"
+          sizes="(min-width: 960px) 40vw, 100vw"
+        />
+
+        {code && <span class="ph__code mono">{code}</span>}
+      </div>
+    )}
+  </div>
+</section>
+
+<style>
+  .ph {
+    position: relative;
+    overflow: hidden;
+    background: var(--c-paper);
+    padding-top: calc(76px + clamp(3rem, 2rem + 5vw, 6rem));
+    padding-bottom: clamp(3rem, 2rem + 4vw, 5.5rem);
+  }
+
+  /* Global network image */
+  .ph__bg {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .ph__bg img {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    opacity: 0.14;
+    filter: saturate(0.65);
+  }
+
+  /* Soft colour wash over the image */
+  .ph__glow {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    background: var(--grad-dawn);
+    opacity: 0.68;
+    pointer-events: none;
+  }
+
+  .ph__inner {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    gap: var(--space-7);
+    align-items: end;
+  }
+
+  .ph__text {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+  }
+
+  .ph__title {
+    max-width: 16ch;
+  }
+
+  .ph__lead {
+    max-width: 56ch;
+  }
+
+  .ph__media {
+    position: relative;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+
+  .ph__code {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    background: var(--c-ink);
+    color: var(--c-white);
+    font-size: 0.7rem;
+  }
+
+  @media (min-width: 960px) {
+    .ph__inner.has-photo {
+      grid-template-columns: 1.35fr 0.9fr;
+    }
+  }
+</style>

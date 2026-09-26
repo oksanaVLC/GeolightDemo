@@ -1,0 +1,92 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import SectionHeader from '../components/ui/SectionHeader.astro';
+import Halftone from '../components/ui/Halftone.astro';
+import Icon from '../components/ui/Icon.astro';
+import Counter from '../components/ui/Counter.astro';
+import Button from '../components/ui/Button.astro';
+import ScrollText from '../components/sections/ScrollText.astro';
+import CtaBand from '../components/sections/CtaBand.astro';
+import { path, t, useT, type Lang } from '../i18n';
+import { esgMetrics, esgPillars, sdgs } from '../data/company';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const tr = useT(lang);
+const c = {
+  es: { title: 'Una planta solar también es un ecosistema', accent: 'ecosistema', lead: 'Medimos nuestro impacto con el mismo rigor con el que medimos los kilovatios: biodiversidad, empleo local, circularidad y buen gobierno.', meta: 'Sostenibilidad y ESG', statement: 'No basta con producir energía limpia. Queremos que cada hectárea tenga más vida, cada municipio más oportunidades y cada decisión más transparencia que antes de llegar.', hl: ['vida,', 'oportunidades', 'transparencia'], pillarsE: 'Pilares ESG', pillarsT: 'Cuatro compromisos medibles.', kpiE: 'Indicadores 2025', kpiT: 'Datos, no adjetivos.', sdgE: 'Agenda 2030', sdgT: 'Contribuimos a cinco Objetivos de Desarrollo Sostenible.', docsE: 'Documentación', docs: ['Memoria de sostenibilidad 2025', 'Política ambiental y de biodiversidad', 'Código ético y canal de denuncias', 'Política de compras responsables'], docsNote: 'Documentos disponibles bajo petición.' },
+  en: { title: 'A solar plant is also an ecosystem', accent: 'ecosystem', lead: 'We measure our impact as rigorously as we measure kilowatts: biodiversity, local jobs, circularity and governance.', meta: 'Sustainability and ESG', statement: 'Producing clean energy is not enough. We want every hectare to hold more life, every town more opportunity and every decision more transparency than before we arrived.', hl: ['life,', 'opportunity', 'transparency'], pillarsE: 'ESG pillars', pillarsT: 'Four measurable commitments.', kpiE: '2025 indicators', kpiT: 'Data, not adjectives.', sdgE: '2030 Agenda', sdgT: 'We contribute to five Sustainable Development Goals.', docsE: 'Documents', docs: ['Sustainability report 2025', 'Environmental & biodiversity policy', 'Code of ethics & whistleblowing channel', 'Responsible procurement policy'], docsNote: 'Documents available on request.' },
+}[lang];
+---
+<BaseLayout lang={lang} title={c.meta} description={c.lead} routeKey="sustainability">
+  <PageHero lang={lang} title={c.title} accent={c.accent} lead={c.lead} eyebrow={tr('nav.sustainability')} crumbs={[{ label: tr('nav.sustainability') }]} photo="grassSunset" />
+
+  <section class="section"><div class="container"><ScrollText text={c.statement} highlight={c.hl} /></div></section>
+
+  <section class="section surface-alt">
+    <div class="container">
+      <SectionHeader eyebrow={c.pillarsE} index="01" title={c.pillarsT} align="split" />
+      <div class="pillars">
+        <div class="pillars__media" data-reveal="scale"><Halftone id="fieldSunset" lang={lang} tone="sun" ratio={3 / 4} reveal /></div>
+        <ul class="pillars__list" role="list" data-stagger="90">
+          {esgPillars.map((p) => (
+            <li class="pillar" data-reveal>
+              <span class="pillar__icon"><Icon name={p.icon} size={26} /></span>
+              <div><h3 class="h4">{t(p.title, lang)}</h3><p class="muted">{t(p.text, lang)}</p></div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section surface-alt">
+    <div class="container">
+      <SectionHeader eyebrow={c.kpiE} index="02" title={c.kpiT} accent={lang === 'es' ? 'no adjetivos.' : 'not adjectives.'} />
+      <dl class="kpi" data-stagger="90">
+        {esgMetrics.map((m) => <div data-reveal><dd><Counter value={m.value} suffix={m.suffix} lang={lang} /></dd><dt>{t(m.label, lang)}</dt></div>)}
+      </dl>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <SectionHeader eyebrow={c.sdgE} index="03" title={c.sdgT} align="split" />
+      <ul class="sdgs" role="list" data-stagger="70">
+        {sdgs.map((s) => <li class="sdg" data-reveal><span class="sdg__n">{String(s.n).padStart(2, '0')}</span><span class="sdg__t">{t(s.title, lang)}</span></li>)}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section surface-white">
+    <div class="container docs">
+      <SectionHeader eyebrow={c.docsE} index="04" title={c.docsE} intro={c.docsNote} size="h3" />
+      <ul class="docs__list" role="list">
+        {c.docs.map((d) => <li><a href={path('contact', lang)}><Icon name="file-pdf" size={24} /><span>{d}</span><Icon name="download-simple" size={20} /></a></li>)}
+      </ul>
+    </div>
+  </section>
+  <CtaBand lang={lang} />
+</BaseLayout>
+<style>
+  .pillars { display: grid; gap: var(--space-7); align-items: center; }
+  @media (min-width: 1000px) { .pillars { grid-template-columns: 0.8fr 1.2fr; } }
+  .pillars__media { border-radius: var(--radius-lg); overflow: hidden; }
+  .pillars__list { display: grid; gap: var(--space-3); }
+  .pillar { display: grid; grid-template-columns: auto 1fr; gap: var(--space-5); padding: var(--space-5); border-radius: var(--radius-lg); background: var(--c-white); border: 1px solid var(--c-line); }
+  .pillar__icon { display: grid; place-items: center; width: 3.2rem; height: 3.2rem; border-radius: 50%; background: color-mix(in srgb, var(--c-leaf) 14%, transparent); color: var(--c-leaf); }
+  .kpi { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-6); }
+  @media (min-width: 900px) { .kpi { grid-template-columns: repeat(4, 1fr); } }
+  .kpi > div { border-top: 1px solid var(--c-line); padding-top: var(--space-5); display: grid; gap: 0.4rem; }
+  .kpi dd { font-size: var(--fs-3xl); letter-spacing: -0.05em; line-height: 1; color: var(--c-sun); }
+  .kpi dt { color: var(--c-muted); }
+  .sdgs { display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .sdg { display: grid; gap: var(--space-5); padding: var(--space-5); border-radius: var(--radius); min-height: 190px; align-content: space-between; background: var(--c-ink); color: var(--c-paper); background-image: radial-gradient(circle, rgb(255 178 31 / 0.22) 1px, transparent 1.4px); background-size: 12px 12px; }
+  .sdg__n { font-size: var(--fs-2xl); letter-spacing: -0.05em; color: var(--c-sun); line-height: 1; }
+  .sdg__t { font-weight: 500; }
+  .docs { display: grid; gap: var(--space-6); }
+  @media (min-width: 1000px) { .docs { grid-template-columns: 0.8fr 1.2fr; } }
+  .docs__list { border-top: 1px solid var(--c-line); }
+  .docs__list a { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--space-4); padding: var(--space-5) 0; border-bottom: 1px solid var(--c-line); transition: padding var(--dur) var(--ease-out), color var(--dur-fast); }
+  .docs__list a:hover { padding-left: var(--space-3); color: var(--c-ember); }
+</style>

@@ -1,0 +1,79 @@
+---
+/**
+ * Formulario de contacto. Envía a `site.formEndpoint` (Formspree, Web3Forms, Netlify…).
+ * Validación nativa + mensajes accesibles + envío con fetch y estado de éxito.
+ */
+import Button from '../ui/Button.astro';
+import { path, type Lang } from '../../i18n';
+import { site } from '../../data/site';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const c = {
+  es: { name: 'Nombre y apellidos', company: 'Empresa', email: 'Email profesional', phone: 'Teléfono', topic: '¿Qué necesitas?', message: 'Cuéntanos tu proyecto', privacy: 'He leído y acepto la', privacyLink: 'política de privacidad', send: 'Enviar mensaje', ok: 'Gracias. Te respondemos en menos de 48 horas laborables.', err: 'No se ha podido enviar. Escríbenos a', topics: ['Autoconsumo industrial', 'Planta solar / venta de proyecto', 'Almacenamiento con baterías', 'O&M de mi planta', 'Tengo terreno disponible', 'Prensa', 'Otro'] },
+  en: { name: 'Full name', company: 'Company', email: 'Work email', phone: 'Phone', topic: 'What do you need?', message: 'Tell us about your project', privacy: 'I have read and accept the', privacyLink: 'privacy policy', send: 'Send message', ok: 'Thank you. We will reply within 48 business hours.', err: 'Could not send. Please email', topics: ['Industrial self-consumption', 'Solar plant / project sale', 'Battery storage', 'O&M for my plant', 'I have land available', 'Press', 'Other'] },
+}[lang];
+---
+<form class="cf" action={site.formEndpoint} method="post" data-contact-form novalidate>
+  <div class="cf__grid">
+    <label class="cf__f"><span>{c.name} *</span><input name="name" required autocomplete="name" /></label>
+    <label class="cf__f"><span>{c.company}</span><input name="company" autocomplete="organization" /></label>
+    <label class="cf__f"><span>{c.email} *</span><input name="email" type="email" required autocomplete="email" /></label>
+    <label class="cf__f"><span>{c.phone}</span><input name="phone" type="tel" autocomplete="tel" /></label>
+  </div>
+  <fieldset class="cf__topics">
+    <legend>{c.topic}</legend>
+    {c.topics.map((tp, i) => (
+      <label class="cf__pill"><input type="radio" name="topic" value={tp} checked={i === 0} /><span>{tp}</span></label>
+    ))}
+  </fieldset>
+  <label class="cf__f"><span>{c.message} *</span><textarea name="message" rows="5" required minlength="10"></textarea></label>
+  <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" class="visually-hidden" aria-hidden="true" />
+  <label class="cf__check"><input type="checkbox" name="privacy" required /><span>{c.privacy} <a href={path('privacy', lang)}>{c.privacyLink}</a>.</span></label>
+  <div class="cf__actions">
+    <Button type="submit" variant="dark" size="lg">{c.send}</Button>
+    <p class="cf__status" role="status" aria-live="polite" data-ok={c.ok} data-err={`${c.err} ${site.email}`}></p>
+  </div>
+</form>
+<style>
+  .cf { display: grid; gap: var(--space-5); }
+  .cf__grid { display: grid; gap: var(--space-5); }
+  @media (min-width: 640px) { .cf__grid { grid-template-columns: 1fr 1fr; } }
+  .cf__f { display: grid; gap: 0.45rem; font-size: var(--fs-sm); font-weight: 500; }
+  .cf__f input, .cf__f textarea { width: 100%; padding: 0.95rem 1rem; border-radius: 10px; border: 1px solid var(--c-line); background: var(--c-white); font-weight: 400; font-size: var(--fs-base); transition: border-color var(--dur-fast), box-shadow var(--dur-fast); resize: vertical; }
+  .cf__f input:focus, .cf__f textarea:focus { outline: none; border-color: var(--c-ink); box-shadow: 0 0 0 4px color-mix(in srgb, var(--c-sun) 45%, transparent); }
+  .cf.was-validated :invalid { border-color: var(--c-ember); }
+  .cf__topics { border: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .cf__topics legend { font-size: var(--fs-sm); font-weight: 500; margin-bottom: 0.7rem; }
+  .cf__pill input { position: absolute; opacity: 0; pointer-events: none; }
+  .cf__pill span { display: inline-block; padding: 0.55rem 0.95rem; border-radius: var(--radius-pill); border: 1px solid var(--c-line); font-size: var(--fs-sm); cursor: pointer; transition: background var(--dur-fast), border-color var(--dur-fast); }
+  .cf__pill span:hover { border-color: var(--c-ink); }
+  .cf__pill input:checked + span { background: var(--c-ink); color: var(--c-paper); border-color: var(--c-ink); }
+  .cf__pill input:focus-visible + span { outline: 2px solid var(--c-sun); outline-offset: 2px; }
+  .cf__check { display: flex; gap: 0.7rem; align-items: start; font-size: var(--fs-sm); color: var(--c-muted); }
+  .cf__check input { width: 1.1rem; height: 1.1rem; margin-top: 0.2rem; accent-color: var(--c-ink); }
+  .cf__check a { text-decoration: underline; color: var(--c-ink); }
+  .cf__actions { display: flex; flex-wrap: wrap; gap: var(--space-5); align-items: center; }
+  .cf__status { font-size: var(--fs-sm); }
+  .cf__status.ok { color: var(--c-leaf); }
+  .cf__status.err { color: var(--c-ember); }
+</style>
+<script>
+  document.querySelectorAll<HTMLFormElement>('[data-contact-form]').forEach((form) => {
+    const status = form.querySelector<HTMLElement>('.cf__status')!;
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      form.classList.add('was-validated');
+      if (!form.checkValidity()) { (form.querySelector(':invalid') as HTMLElement | null)?.focus(); return; }
+      const btn = form.querySelector<HTMLButtonElement>('[type=submit]');
+      btn?.setAttribute('disabled', '');
+      try {
+        const res = await fetch(form.action, { method: 'POST', body: new FormData(form), headers: { Accept: 'application/json' } });
+        if (!res.ok) throw new Error();
+        form.reset(); form.classList.remove('was-validated');
+        status.className = 'cf__status ok'; status.textContent = status.dataset.ok!;
+      } catch {
+        status.className = 'cf__status err'; status.textContent = status.dataset.err!;
+      } finally { btn?.removeAttribute('disabled'); }
+    });
+  });
+</script>

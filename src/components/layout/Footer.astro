@@ -1,0 +1,134 @@
+---
+import { offices, site } from '../../data/site';
+import { solutions } from '../../data/solutions';
+import { detailPath, path, t, useT, type Lang } from '../../i18n';
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const tr = useT(lang);
+const year = new Date().getFullYear();
+const company = (['about', 'projects', 'sustainability', 'careers', 'news', 'contact'] as const).map((k) => ({ href: path(k, lang), label: tr(`nav.${k}` as any) }));
+const social = [
+  { href: site.social.linkedin, icon: 'linkedin-logo', label: 'LinkedIn' },
+  { href: site.social.x, icon: 'x-logo', label: 'X' },
+  { href: site.social.instagram, icon: 'instagram-logo', label: 'Instagram' },
+  { href: site.social.youtube, icon: 'youtube-logo', label: 'YouTube' },
+];
+const ascii = '─'.repeat(12) + ' ✳ ' + '─'.repeat(12);
+---
+<footer class="ftr surface-dark">
+  <div class="container">
+    <div class="ftr__top">
+      <div class="ftr__brand">
+    <a
+  href={path('home', lang)}
+  class="ftr__logo"
+  aria-label={site.name}
+>
+  <img
+    src="/logo-light.png"
+    alt={site.name}
+  />
+</a>
+        <p class="ftr__tag">{tr('footer.tagline')}</p>
+        <form class="ftr__news" action={site.formEndpoint} method="post">
+          <label for="nl-email" class="ftr__h mono">{tr('footer.newsletter')}</label>
+          <p class="ftr__small">{tr('footer.newsletterText')}</p>
+          <div class="ftr__field">
+            <input id="nl-email" type="email" name="email" required placeholder={tr('footer.emailPlaceholder')} autocomplete="email" />
+            <Button type="submit" size="sm" variant="primary">{tr('footer.subscribe')}</Button>
+          </div>
+        </form>
+      </div>
+
+      <nav class="ftr__col" aria-label={tr('footer.company')}>
+        <p class="ftr__h mono">{tr('footer.company')}</p>
+        <ul role="list">{company.map((l) => <li><a href={l.href}>{l.label}</a></li>)}</ul>
+      </nav>
+      <nav class="ftr__col" aria-label={tr('footer.solutions')}>
+        <p class="ftr__h mono">{tr('footer.solutions')}</p>
+        <ul role="list">{solutions.map((s) => <li><a href={detailPath('solutions', s.slug[lang], lang)}>{t(s.title, lang)}</a></li>)}</ul>
+      </nav>
+      <div class="ftr__col">
+        <p class="ftr__h mono">{tr('footer.contact')}</p>
+        <address>
+          <a href={`mailto:${site.email}`}>{site.email}</a><br />
+          <a href={`tel:${site.phoneHref}`}>{site.phone}</a>
+        </address>
+        <ul role="list" class="ftr__offices">
+          {offices.map((o) => <li><strong>{o.city}</strong> <span>{t(o.role, lang)}</span></li>)}
+        </ul>
+        <ul role="list" class="ftr__social">
+          {social.map((s) => <li><a href={s.href} aria-label={s.label} target="_blank" rel="noopener"><Icon name={s.icon} size={20} /></a></li>)}
+        </ul>
+      </div>
+    </div>
+
+    <p class="ftr__ascii mono" aria-hidden="true">{ascii}</p>
+
+    <!-- Wordmark gigante relleno de trama de puntos (halftone vectorial) -->
+    <svg class="ftr__word" viewBox="0 0 1000 190" role="img" aria-label={site.name}>
+      <defs>
+        <pattern id="ftr-dots" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(-18)"><circle cx="4.5" cy="4.5" r="2.6" fill="currentColor" /></pattern>
+        <linearGradient id="ftr-fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" /><stop offset="1" stop-color="#fff" stop-opacity="0.15" /></linearGradient>
+        <mask id="ftr-mask"><rect width="1000" height="190" fill="url(#ftr-fade)" /></mask>
+      </defs>
+      <text x="500" y="160" text-anchor="middle" textLength="990" lengthAdjust="spacingAndGlyphs" fill="url(#ftr-dots)" mask="url(#ftr-mask)">geolight</text>
+    </svg>
+
+    <div class="ftr__bottom">
+      <p>© {year} {site.legalName} {tr('footer.rights')}</p>
+      <ul role="list">
+        <li><a href={path('privacy', lang)}>{tr('footer.privacy')}</a></li>
+        <li><a href={path('cookies', lang)}>{tr('footer.cookies')}</a></li>
+        <li><a href={path('legal', lang)}>{tr('footer.legal')}</a></li>
+      </ul>
+      <a href="#top" class="ftr__top-link mono">{tr('footer.backTop')} <Icon name="arrow-up-right" size={14} /></a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .ftr { padding-top: clamp(4rem, 3rem + 4vw, 7rem); overflow: hidden; }
+  .ftr__top { display: grid; gap: var(--space-7); grid-template-columns: 1fr; }
+  @media (min-width: 760px) { .ftr__top { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 1100px) { .ftr__top { grid-template-columns: 1.6fr 0.8fr 1fr 1.1fr; } }
+  .ftr__brand { display: grid; gap: var(--space-5); align-content: start; max-width: 460px; }
+  .ftr__tag { color: var(--c-muted-dark); font-size: var(--fs-md); }
+  .ftr__h { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--c-sun); margin-bottom: var(--space-4); display: block; }
+  .ftr__small { color: var(--c-muted-dark); font-size: var(--fs-sm); margin-top: -0.6rem; margin-bottom: var(--space-4); }
+  .ftr__news { margin-top: var(--space-4); }
+
+.ftr__logo {
+  display: inline-flex;
+  width: fit-content;
+}
+
+.ftr__logo img {
+  display: block;
+  width: auto;
+  height: 46px;
+}
+
+  .ftr__field { display: flex; gap: 0.35rem; padding: 0.3rem 0.3rem 0.3rem 0.4rem; border: 1px solid var(--c-silver, #e3e4e8); border-radius: var(--radius-pill); background: var(--c-white); box-shadow: 0 1px 2px rgb(17 26 74 / 0.08); }
+  .ftr__field input { flex: 1; min-width: 0; background: none; border: 0; padding: 0 0.7rem; outline: none; font-size: var(--fs-sm); color: var(--c-ink); }
+  .ftr__field input::placeholder { color: var(--c-muted); }
+  .ftr__field:focus-within { border-color: var(--c-sun); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-sun) 30%, transparent); }
+  .ftr__col ul { display: grid; gap: 0.55rem; }
+  .ftr__col a { color: var(--c-paper); opacity: 0.8; transition: opacity var(--dur-fast), color var(--dur-fast); }
+  .ftr__col a:hover { opacity: 1; color: var(--c-sun); }
+  address { font-style: normal; line-height: 1.9; margin-bottom: var(--space-5); }
+  .ftr__offices { font-size: var(--fs-sm); margin-bottom: var(--space-5); }
+  .ftr__offices span { color: var(--c-muted-dark); }
+  .ftr__offices strong { font-weight: 500; }
+  .ftr__social { display: flex !important; gap: 0.5rem !important; }
+  .ftr__social a { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--c-line-dark); }
+  .ftr__social a:hover { background: var(--c-sun); color: var(--c-ink); border-color: var(--c-sun); }
+  .ftr__ascii { margin-top: clamp(3rem, 6vw, 6rem); color: var(--c-ink-3); text-align: center; white-space: nowrap; overflow: hidden; font-size: 0.8rem; letter-spacing: 0.1em; }
+  .ftr__word { width: 100%; height: auto; color: var(--c-sun); margin-top: var(--space-5); font-family: var(--font-sans); font-weight: 600; font-size: 205px; letter-spacing: -0.06em; }
+  .ftr__bottom { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-4); padding-block: var(--space-6); border-top: 1px solid var(--c-line-dark); font-size: var(--fs-xs); color: var(--c-muted-dark); }
+  .ftr__bottom ul { display: flex; gap: var(--space-5); }
+  .ftr__bottom a:hover { color: var(--c-paper); }
+  .ftr__top-link { display: inline-flex; gap: 0.4rem; align-items: center; text-transform: uppercase; letter-spacing: 0.08em; }
+</style>

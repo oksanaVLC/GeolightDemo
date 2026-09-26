@@ -1,0 +1,8 @@
+---
+/** Número que cuenta hacia arriba al entrar en pantalla (script global en BaseLayout). */
+import { formatNumber, type Lang } from '../../i18n';
+interface Props { value: number; decimals?: number; suffix?: string; prefix?: string; lang: Lang; class?: string }
+const { value, decimals = 0, suffix = '', prefix = '', lang, class: className = '' } = Astro.props;
+---
+<span class:list={['counter', className]} data-count={value} data-decimals={decimals} data-locale={lang === 'es' ? 'es-ES' : 'en-GB'} data-prefix={prefix} data-suffix={suffix}>{prefix}{formatNumber(value, lang, decimals)}{suffix}</span>
+<style>.counter { font-variant-numeric: tabular-nums; }</style>

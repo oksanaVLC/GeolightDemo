@@ -1,0 +1,163 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import SectionHeader from '../components/ui/SectionHeader.astro';
+import Halftone from '../components/ui/Halftone.astro';
+import Icon from '../components/ui/Icon.astro';
+import Counter from '../components/ui/Counter.astro';
+import Timeline from '../components/sections/Timeline.astro';
+import CtaBand from '../components/sections/CtaBand.astro';
+import PartnerLogos from '../components/brand/PartnerLogos.astro';
+import { t, useT, type Lang } from '../i18n';
+import { keyStats, offices } from '../data/site';
+import { values, leadership, certifications } from '../data/company';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const tr = useT(lang);
+const c = {
+  es: {
+    title: 'Ingeniería con los pies en la tierra',
+    accent: 'los pies en la tierra',
+    lead: 'Somos una compañía independiente de energía solar nacida en València en 2011. Desarrollamos, construimos y operamos activos renovables con una idea fija: que duren y rindan 30 años.',
+    meta: 'Nosotros — Historia, valores y equipo',
+    missionE: 'Propósito', missionT: 'Acelerar una transición energética que funcione para las personas, la industria y el territorio.',
+    missionP: 'Trabajamos con industria, fondos de infraestructura, propietarios de suelo y administraciones. Nuestro modelo integrado —del terreno a la red y de la red a la operación— elimina fricciones y alinea incentivos: si la planta rinde, ganamos todos.',
+    historyE: 'Historia', historyT: 'Quince años de sol, uno detrás de otro.',
+    valuesE: 'Valores', valuesT: 'Cinco principios que no negociamos.',
+    teamE: 'Dirección', teamT: 'Un equipo directivo técnico y cercano.',
+    teamP: 'Más de 310 profesionales en cuatro oficinas. El 72 % son perfiles técnicos: ingenieros, técnicos de campo, analistas y desarrolladores.',
+    certE: 'Certificaciones', certT: 'Sistemas de gestión auditados cada año.',
+    officesE: 'Oficinas',
+  },
+  en: {
+    title: 'Engineering with its feet on the ground',
+    accent: 'its feet on the ground',
+    lead: 'We are an independent solar energy company founded in Valencia in 2011. We develop, build and operate renewable assets with one fixed idea: they must last and perform for 30 years.',
+    meta: 'About — History, values and team',
+    missionE: 'Purpose', missionT: 'Accelerating an energy transition that works for people, industry and places.',
+    missionP: 'We work with industry, infrastructure funds, landowners and public bodies. Our integrated model — from land to grid and from grid to operations — removes friction and aligns incentives: when the plant performs, everyone wins.',
+    historyE: 'History', historyT: 'Fifteen years of sunshine, one after another.',
+    valuesE: 'Values', valuesT: 'Five principles we do not negotiate.',
+    teamE: 'Leadership', teamT: 'A technical, hands-on leadership team.',
+    teamP: 'More than 310 people across four offices. 72% hold technical roles: engineers, field technicians, analysts and developers.',
+    certE: 'Certifications', certT: 'Management systems audited every year.',
+    officesE: 'Offices',
+  },
+}[lang];
+---
+<BaseLayout lang={lang} title={c.meta} description={c.lead} routeKey="about">
+  <PageHero lang={lang} title={c.title} accent={c.accent} lead={c.lead} eyebrow={tr('nav.about')} crumbs={[{ label: tr('nav.about') }]} photo="teamSite" />
+
+  <section class="section">
+    <div class="container mission">
+      <div>
+        <SectionHeader eyebrow={c.missionE} index="01" title={c.missionT} size="h3" />
+      </div>
+      <div class="mission__body" data-reveal>
+        <p class="lead">{c.missionP}</p>
+        <dl class="mission__stats">
+          {keyStats.map((s) => <div><dd><Counter value={s.value} decimals={s.decimals} suffix={s.suffix} lang={lang} /></dd><dt>{t(s.label, lang)}</dt></div>)}
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section class="section surface-alt">
+    <div class="container">
+      <SectionHeader eyebrow={c.historyE} index="02" title={c.historyT} accent={lang === 'es' ? 'uno detrás de otro.' : 'one after another.'} />
+      <Timeline lang={lang} />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <SectionHeader eyebrow={c.valuesE} index="03" title={c.valuesT} align="split" />
+      <ul class="values" role="list" data-stagger="80">
+        {values.map((v, i) => (
+          <li class="value" data-reveal>
+            <span class="value__n mono">{String(i + 1).padStart(2, '0')}</span>
+            <span class="value__icon"><Icon name={v.icon} size={28} /></span>
+            <h3 class="h4">{t(v.title, lang)}</h3>
+            <p class="muted">{t(v.text, lang)}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section surface-alt">
+    <div class="container team">
+      <div class="team__intro">
+        <SectionHeader eyebrow={c.teamE} index="04" title={c.teamT} intro={c.teamP} />
+        <div class="team__photo" data-reveal="scale"><Halftone id="teamTable" lang={lang} tone="paper" ratio={16 / 10} reveal /></div>
+      </div>
+      <ul class="people" role="list" data-stagger="80">
+        {leadership.map((p) => (
+          <li class="person" data-reveal>
+            <span class="person__avatar" aria-hidden="true"><span>{p.initials}</span></span>
+            <span class="person__name">{p.name}</span>
+            <span class="person__role mono">{t(p.role, lang)}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <SectionHeader eyebrow={c.certE} index="05" title={c.certT} align="split" />
+      <ul class="certs" role="list" data-stagger="80">
+        {certifications.map((ce) => (
+          <li class="cert" data-reveal><Icon name="seal-check" size={32} /><strong>{ce.code}</strong><span class="muted">{t(ce.label, lang)}</span></li>
+        ))}
+      </ul>
+      <div class="offices">
+        <p class="mono offices__h">{c.officesE}</p>
+        <ul role="list" class="offices__list">
+          {offices.map((o) => <li><strong>{o.city}</strong><span>{t(o.role, lang)}</span><span class="muted">{o.address} · {t(o.country, lang)}</span></li>)}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section--tight surface-white"><div class="container"><PartnerLogos /></div></section>
+  <CtaBand lang={lang} />
+</BaseLayout>
+
+<style>
+  .mission { display: grid; gap: var(--space-7); }
+  @media (min-width: 1000px) { .mission { grid-template-columns: 1fr 1.1fr; } }
+  .mission__body { display: grid; gap: var(--space-7); }
+  .mission__stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-5); }
+  .mission__stats > div { border-top: 1px solid var(--c-line); padding-top: var(--space-4); display: grid; gap: 0.2rem; }
+  .mission__stats dd { font-size: var(--fs-2xl); letter-spacing: -0.045em; line-height: 1; }
+  .mission__stats dt { color: var(--c-muted); font-size: var(--fs-sm); }
+
+  .values { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+  .value { position: relative; display: grid; gap: var(--space-3); align-content: start; padding: var(--space-6) var(--space-5); border-radius: var(--radius-lg); background: var(--c-white); border: 1px solid var(--c-line); min-height: 280px; overflow: hidden; transition: background var(--dur), color var(--dur); }
+  .value:hover { background: var(--c-ink); color: var(--c-paper); }
+  .value:hover .muted { color: var(--c-muted-dark); }
+  .value__n { position: absolute; top: 1.2rem; right: 1.4rem; font-size: var(--fs-xs); color: var(--c-muted); }
+  .value__icon { display: grid; place-items: center; width: 3.2rem; height: 3.2rem; border-radius: 50%; background: var(--c-sun); color: var(--c-ink); margin-bottom: var(--space-5); }
+
+  .team { display: grid; gap: var(--space-7); }
+  @media (min-width: 1000px) { .team { grid-template-columns: 1.1fr 1fr; align-items: end; } }
+  .team__photo { border-radius: var(--radius-lg); overflow: hidden; }
+  .team__intro :global(.sh) { margin-bottom: var(--space-6); }
+  .people { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4); }
+  .person { display: grid; gap: 0.3rem; padding: var(--space-5); border-radius: var(--radius-lg); background: var(--c-white); border: 1px solid var(--c-line); }
+  .person__avatar { aspect-ratio: 1; border-radius: var(--radius); margin-bottom: var(--space-3); display: grid; place-items: center; background: radial-gradient(circle, var(--c-ink) 1.4px, transparent 1.8px) 0 0 / 9px 9px, var(--c-sun); }
+  .person__avatar span { display: grid; place-items: center; width: 44%; aspect-ratio: 1; border-radius: 50%; background: var(--c-ink); color: var(--c-sun); font-size: var(--fs-lg); font-weight: 500; letter-spacing: -0.02em; }
+  .person__name { font-weight: 500; font-size: var(--fs-md); }
+  .person__role { font-size: 0.7rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--c-muted); }
+
+  .certs { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .cert { display: grid; gap: 0.3rem; justify-items: start; padding: var(--space-5); border: 1px dashed var(--c-line); border-radius: var(--radius); color: var(--c-ink); }
+  .cert :global(svg) { color: var(--c-leaf); margin-bottom: var(--space-3); }
+  .cert strong { font-weight: 500; font-size: var(--fs-lg); letter-spacing: -0.02em; }
+  .offices { margin-top: var(--space-8); display: grid; gap: var(--space-4); }
+  .offices__h { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--c-muted); }
+  .offices__list { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); border-top: 1px solid var(--c-line); }
+  .offices__list li { display: grid; gap: 0.2rem; padding: var(--space-5) var(--space-4) var(--space-5) 0; border-bottom: 1px solid var(--c-line); font-size: var(--fs-sm); }
+  .offices__list strong { font-size: var(--fs-lg); font-weight: 500; letter-spacing: -0.02em; }
+</style>

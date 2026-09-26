@@ -1,0 +1,9 @@
+---
+import View from '../../views/SolutionDetail.astro';
+import { solutions } from '../../data/solutions';
+export function getStaticPaths() {
+  return solutions.map((solution) => ({ params: { slug: solution.slug.es }, props: { solution } }));
+}
+const { solution } = Astro.props;
+---
+<View lang="es" solution={solution} />

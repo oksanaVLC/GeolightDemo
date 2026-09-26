@@ -1,0 +1,21 @@
+---
+/**
+ * <Icon name="sun" size={24} />
+ * Iconos SVG profesionales (Phosphor Icons · peso "light" · licencia MIT) guardados en /src/icons.
+ * Para añadir uno: copia el .svg a /src/icons con el nombre que quieras usar.
+ * Heredan el color del texto (currentColor).
+ */
+interface Props {
+  name: string;
+  size?: number | string;
+  class?: string;
+  label?: string; // si se pasa, el icono deja de ser decorativo
+}
+const { name, size = 24, class: className = '', label } = Astro.props;
+const icons = import.meta.glob<string>('../../icons/*.svg', { query: '?raw', import: 'default', eager: true });
+const raw = icons[`../../icons/${name}.svg`];
+if (!raw) throw new Error(`[Icon] No existe el icono "${name}" en /src/icons`);
+const a11y = label ? `role="img" aria-label="${label}"` : 'aria-hidden="true" focusable="false"';
+const svg = raw.replace('<svg ', `<svg width="${size}" height="${size}" class="icon ${className}" ${a11y} `);
+---
+<Fragment set:html={svg} />

@@ -1,0 +1,253 @@
+
+---
+/**
+ * FOTO TRAMADA (HALFTONE)
+ *
+ * Estado normal:
+ *   → fotografía original a color
+ *
+ * Hover en desktop:
+ *   → mitad izquierda: fotografía original
+ *   → mitad derecha: halftone
+ *
+ * El halftone utiliza únicamente:
+ *   #f7f4f4
+ *   #ffffff
+ *
+ * No se aplica ningún duotono ni color adicional.
+ *
+ * En dispositivos táctiles:
+ *   → solo fotografía original
+ */
+
+import type { PhotoKey } from '../../data/images';
+import type { Lang } from '../../i18n';
+import Photo from './Photo.astro';
+
+interface Props {
+  id: PhotoKey;
+  lang: Lang;
+  ratio?: number;
+  sizes?: string;
+  reveal?: boolean;
+  class?: string;
+  loading?: 'lazy' | 'eager';
+}
+
+const {
+  id,
+  lang,
+  ratio = 4 / 3,
+  sizes = '(min-width: 900px) 50vw, 100vw',
+  reveal = false,
+  class: className = '',
+  loading = 'lazy'
+} = Astro.props;
+---
+
+<figure
+  class:list={['ht', { 'ht--reveal': reveal }, className]}
+  style={`aspect-ratio:${ratio}`}
+>
+  <!-- ================================================================
+       FOTO ORIGINAL
+       ================================================================ -->
+
+  <div class="ht__photo" aria-hidden="true">
+    <Photo
+      id={id}
+      lang={lang}
+      ratio={ratio}
+      sizes={sizes}
+      widths={[480, 800, 1200]}
+      loading={loading}
+      alt=""
+    />
+  </div>
+
+  <!-- ================================================================
+       HALFTONE
+       ================================================================ -->
+
+  <div class="ht__halftone" aria-hidden="true">
+    <Photo
+      id={id}
+      lang={lang}
+      ratio={ratio}
+      sizes={sizes}
+      widths={[480, 800, 1200]}
+      loading={loading}
+      alt=""
+    />
+  </div>
+
+  <slot />
+</figure>
+
+<style>
+  /* ======================================================================
+     BASE
+     ====================================================================== */
+
+  .ht {
+    --dot: var(--ht-dot);
+
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    margin: 0;
+    background: #fff;
+    border-radius: inherit;
+  }
+
+  /* ======================================================================
+     FOTO ORIGINAL
+     ====================================================================== */
+
+  .ht__photo {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .ht__photo :global(img) {
+    position: absolute;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+  }
+
+  /* ======================================================================
+     HALFTONE
+     ----------------------------------------------------------------------
+     Por defecto está completamente oculto.
+     Solo aparece al hacer hover.
+     ====================================================================== */
+
+  .ht__halftone {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+
+    overflow: hidden;
+
+    /*
+     * Oculto por defecto.
+     *
+     * Esto hace que la imagen inicial sea 100 % fotografía normal.
+     */
+    opacity: 0;
+
+    pointer-events: none;
+
+    transition:
+      opacity var(--dur) var(--ease-out);
+
+    /*
+      Solo la mitad derecha se convierte en halftone.
+     
+    clip-path: inset(0 0 0 50%);*/
+  }
+
+  /* ======================================================================
+     IMAGEN BASE DEL HALFTONE
+     ====================================================================== */
+
+  .ht__halftone :global(img) {
+    position: absolute;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    /*
+     * Imagen en blanco y negro.
+     *
+     * El contraste es moderado para evitar que el resultado
+     * quede demasiado oscuro.
+     */
+    filter:
+      grayscale(1)
+      contrast(7)
+      brightness(1)
+      blur(calc(var(--dot) * 0.25));
+
+    transform: scale(1.04);
+  }
+
+  /* ======================================================================
+     TRAMA
+     ====================================================================== */
+
+  .ht__halftone::after {
+    content: '';
+
+    position: absolute;
+    inset: -50%;
+
+    /*
+     * Halftone claro:
+     *
+     * #f7f4f4 = punto
+     * #ffffff = fondo
+     *
+     * No se introduce ninguna tinta adicional.
+     */
+    background:
+      radial-gradient(
+        circle at center,
+        #f7f4f4 calc(var(--dot) * 0.24),
+        #fff calc(var(--dot) * 0.70)
+      )
+      0 0 /
+      var(--dot) var(--dot);
+
+    transform: rotate(-18deg);
+
+    /*
+     * La trama interactúa con la fotografía en blanco y negro.
+     */
+    mix-blend-mode: multiply;
+  }
+
+  /* ======================================================================
+     HOVER
+     ====================================================================== */
+
+  /*
+   * El efecto solo se activa cuando el dispositivo realmente
+   * soporta hover.
+   */
+
+  @media (hover: hover) and (pointer: fine) {
+
+    .ht--reveal:hover .ht__halftone,
+    :global(a:hover) > .ht--reveal .ht__halftone,
+    :global(.card:hover) .ht--reveal .ht__halftone {
+      opacity: 1;
+    }
+
+  }
+
+  /* ======================================================================
+     MÓVIL / TOUCH
+     ----------------------------------------------------------------------
+     No mostramos absolutamente nada de halftone.
+     La fotografía permanece limpia.
+     ====================================================================== */
+
+  @media (hover: none), (pointer: coarse) {
+
+    .ht__halftone {
+      display: none;
+    }
+
+  }
+</style>
+

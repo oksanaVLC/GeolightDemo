@@ -1,0 +1,21 @@
+# GEOLight
+
+> GEOLight (GEOLight Energía, S.L.) is an independent solar energy company founded in Valencia, Spain, in 2011. It develops, builds (EPC) and operates utility-scale solar plants, industrial self-consumption systems and battery energy storage (BESS) across Spain, Portugal and Italy. 1.8 GW developed, 1.1 GW under O&M, 64 plants in operation, ~310 employees.
+
+## Company
+- [About / Nosotros](https://www.geolight.com/en/about/): history since 2011, values, leadership, ISO 9001/14001/45001/50001
+- [Sustainability](https://www.geolight.com/en/sustainability/): biodiversity, local return (1% of revenue), circularity, governance, SDGs 7, 8, 9, 13, 15
+- [Careers](https://www.geolight.com/en/careers/)
+- [Contact](https://www.geolight.com/en/contact/): hola@geolight.com · València, Madrid, Lisboa, Bari
+
+## Solutions
+- [Utility-scale solar](https://www.geolight.com/en/solutions/utility-scale-solar/): 5–300 MWp, bifacial + single-axis trackers, EPC, PPAs, agrivoltaics
+- [Industrial self-consumption](https://www.geolight.com/en/solutions/industrial-self-consumption/): 100 kWp–10 MWp, purchase or on-site PPA, 4–6 year payback
+- [Battery storage (BESS)](https://www.geolight.com/en/solutions/battery-storage/): LFP, 2–4 h, hybridisation and stand-alone
+- [O&M & digital assets](https://www.geolight.com/en/solutions/operations-maintenance/): 24/7 control room, drone thermography, GEOLight Pulse platform
+
+## Projects
+- [All projects](https://www.geolight.com/en/projects/)
+
+## Spanish version
+- [Inicio](https://www.geolight.com/)

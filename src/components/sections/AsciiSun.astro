@@ -1,0 +1,125 @@
+---
+/**
+ * ASCII SUN — amanecer generativo dibujado con caracteres ASCII en <canvas>.
+ * · Sol + rayos + reflejo ondulado sobre el "mar" (onda = GEOLight).
+ * · Sigue suavemente al puntero, se pausa fuera de pantalla y respeta prefers-reduced-motion.
+ * Personaliza: data-ramp (caracteres de menos a más brillo), colores vía tokens CSS.
+ */
+interface Props { class?: string; ramp?: string; cell?: number }
+const { class: className = '', ramp = ' .:-=+*#%@', cell = 12 } = Astro.props;
+---
+<div class:list={['ascii', className]} aria-hidden="true">
+  <canvas class="ascii__canvas" data-ramp={ramp} data-cell={cell}></canvas>
+</div>
+
+<style>
+  .ascii { position: absolute; inset: 0; overflow: hidden; }
+  .ascii__canvas { width: 100%; height: 100%; }
+  @media (max-width: 760px) { .ascii { opacity: 0.65; } }
+</style>
+
+<script>
+  function init(canvas: HTMLCanvasElement) {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const ramp = canvas.dataset.ramp || ' .:-=+*#%@';
+    const cellW = Number(canvas.dataset.cell || 13);
+    const cellH = Math.round(cellW * 1.55);
+    const css = getComputedStyle(document.documentElement);
+    const col = (v: string, f: string) => css.getPropertyValue(v).trim() || f;
+    const palette = [col('--c-ink-3', '#1f2a25'), '#3a3f33', col('--c-ember', '#ff5b24'), col('--c-sun', '#ffb21f'), col('--c-sun-soft', '#ffd27a')];
+    const mono = css.getPropertyValue('--font-mono').trim() || 'monospace';
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let W = 0, H = 0, cols = 0, rows = 0, dpr = 1;
+    let target = { x: 0, y: 0 }, pointer = { x: 0, y: 0 };
+    let running = false, raf = 0, last = 0;
+    const t0 = performance.now();
+
+    function resize() {
+      const r = canvas.getBoundingClientRect();
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = r.width; H = r.height;
+      canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cols = Math.ceil(W / cellW); rows = Math.ceil(H / cellH);
+      ctx!.font = `500 ${Math.round(cellW * 1.05)}px ${mono}`;
+      ctx!.textBaseline = 'top';
+      draw(performance.now());
+    }
+
+    function draw(now: number) {
+      const t = (now - t0) / 1000;
+      pointer.x += (target.x - pointer.x) * 0.04; pointer.y += (target.y - pointer.y) * 0.04;
+      const aspect = (cols * cellW) / (rows * cellH);
+      const wide = W > 900;
+      const sx = (wide ? 0.5 : 0.62) * aspect + pointer.x * 0.08;
+      const horizon = wide ? 0.34 : -0.3;
+      const R = wide ? 0.56 : 0.34;
+      const sy = horizon - R * 0.62 - Math.sin(t * 0.2) * 0.025 + pointer.y * 0.03;
+      ctx!.clearRect(0, 0, W, H);
+      const buckets: string[][] = [[], [], [], [], []];
+      const pos: number[][] = [[], [], [], [], []];
+      for (let j = 0; j < rows; j++) {
+        const y = (j / rows) * 2 - 1;
+        for (let i = 0; i < cols; i++) {
+          const x = ((i / cols) * 2 - 1) * aspect;
+          let b = 0;
+          if (y < horizon) {
+            const dx = x - sx, dy = y - sy;
+            const d = Math.hypot(dx, dy);
+            if (d < R) {
+              // Disco con franjas horizontales que se abren hacia el horizonte (eco del isotipo)
+              const rel = (y - (sy - R)) / (2 * R);
+              const f = ((y * (wide ? 7 : 12) - t * 0.25) % 1 + 1) % 1;
+              const gap = rel < 0.3 ? 0 : (rel - 0.3) * 1.25;
+              b = f < gap ? 0.08 : 1 - rel * 0.35 - (d / R) * 0.12;
+            } else {
+              const th = Math.atan2(dy, dx);
+              const glow = Math.exp(-(d - R) * 3.2);
+              const rays = Math.pow(0.5 + 0.5 * Math.sin(th * 18 + t * 0.3), 6);
+              b = glow * 0.42 + rays * Math.exp(-(d - R) * 1.1) * 0.32;
+            }
+            b *= Math.min(1, (horizon - y) * 14);
+          } else {
+            const depth = y - horizon;
+            const spread = 0.08 + depth * 0.7;
+            const refl = Math.exp(-Math.abs(x - sx) / (R * 0.55 + spread)) * Math.exp(-depth * (wide ? 1.6 : 3));
+            const wave = 0.5 + 0.5 * Math.sin(x * 7 - t * 1.4 + Math.sin(depth * 30 - t) * 1.6);
+            const band = ((depth * 26 - t * 0.6) % 1 + 1) % 1 < 0.55 ? 1 : 0.25;
+            b = refl * (0.25 + 0.75 * wave) * band + 0.07 * band * Math.exp(-depth * 2);
+          }
+          if (b < 0.06) continue;
+          b = Math.min(1, b);
+          const ch = ramp[Math.min(ramp.length - 1, Math.floor(b * (ramp.length - 1) + 0.5))];
+          if (ch === ' ') continue;
+          const k = b > 0.8 ? 4 : b > 0.55 ? 3 : b > 0.3 ? 2 : b > 0.16 ? 1 : 0;
+          buckets[k].push(ch); pos[k].push(i * cellW, j * cellH);
+        }
+      }
+      for (let k = 0; k < 5; k++) {
+        ctx!.fillStyle = palette[k];
+        const chars = buckets[k], p = pos[k];
+        for (let n = 0; n < chars.length; n++) ctx!.fillText(chars[n], p[n * 2], p[n * 2 + 1]);
+      }
+    }
+
+    function loop(now: number) {
+      if (!running) return;
+      if (now - last > 40) { draw(now); last = now; }
+      raf = requestAnimationFrame(loop);
+    }
+    const start = () => { if (reduce || running) return; running = true; raf = requestAnimationFrame(loop); };
+    const stop = () => { running = false; cancelAnimationFrame(raf); };
+
+    new ResizeObserver(resize).observe(canvas);
+    new IntersectionObserver(([e]) => (e.isIntersecting ? start() : stop())).observe(canvas);
+    document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
+    window.addEventListener('pointermove', (e) => {
+      target.x = (e.clientX / window.innerWidth) * 2 - 1;
+      target.y = (e.clientY / window.innerHeight) * 2 - 1;
+    }, { passive: true });
+    document.fonts?.ready.then(resize);
+  }
+  document.querySelectorAll<HTMLCanvasElement>('.ascii__canvas').forEach(init);
+</script>

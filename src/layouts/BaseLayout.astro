@@ -1,0 +1,127 @@
+---
+import '@fontsource-variable/geist';
+import '@fontsource-variable/geist-mono';
+import '@fontsource/instrument-serif/400-italic.css';
+import '../styles/global.css';
+import SEO from '../components/layout/SEO.astro';
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+import { htmlLang, routes, useT, type Lang, type RouteKey } from '../i18n';
+
+interface Props {
+  lang: Lang;
+  title: string;
+  description: string;
+  /** clave de ruta estática (calcula hreflang automáticamente) */
+  routeKey?: RouteKey;
+  /** o alternates explícitos para páginas dinámicas */
+  alternates?: Partial<Record<Lang, string>>;
+  headerTheme?: 'dark' | 'light';
+  image?: string;
+  type?: 'website' | 'article';
+  noindex?: boolean;
+  jsonLd?: object[];
+}
+const { lang, title, description, routeKey, alternates: alt, headerTheme = 'light', image, type, noindex, jsonLd } = Astro.props;
+const alternates = alt ?? (routeKey ? routes[routeKey] : { [lang]: Astro.url.pathname });
+const current = routeKey ?? undefined;
+const tr = useT(lang);
+---
+<!doctype html>
+<html lang={htmlLang[lang]} class="no-js">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f6f6f8" />
+    <meta name="color-scheme" content="light" />
+    <link rel="icon" href="/favicon.png" type="image/png" sizes="any" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <SEO lang={lang} title={title} description={description} alternates={alternates} image={image} type={type} noindex={noindex} jsonLd={jsonLd} />
+    <script is:inline>document.documentElement.classList.remove('no-js');</script>
+  </head>
+  <body id="top">
+    <a class="skip-link" href="#main">{tr('skip')}</a>
+    <Header lang={lang} alternates={alternates} theme={headerTheme} current={current} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer lang={lang} />
+
+    <script>
+      /* ---------- Animaciones globales (≈1 KB) ---------------------------------
+         [data-reveal]      → aparece al entrar en pantalla (usa --delay)
+         [data-split]       → divide un titular en palabras y las eleva en cascada
+         [data-count]       → contador numérico animado
+         [data-stagger]     → aplica --delay incremental a sus hijos [data-reveal]
+      --------------------------------------------------------------------------- */
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      document.querySelectorAll<HTMLElement>('[data-stagger]').forEach((group) => {
+        const step = Number(group.dataset.stagger) || 90;
+        group.querySelectorAll<HTMLElement>(':scope > [data-reveal]').forEach((el, i) => el.style.setProperty('--delay', `${i * step}ms`));
+      });
+
+      document.querySelectorAll<HTMLElement>('[data-split]').forEach((el) => {
+        let i = 0;
+        const walk = (node: Node) => {
+          [...node.childNodes].forEach((child) => {
+            if (child.nodeType === 3) {
+              const parts = (child.textContent || '').split(/(\s+)/);
+              const frag = document.createDocumentFragment();
+              parts.forEach((p) => {
+                if (!p) return;
+                if (/^\s+$/.test(p)) { frag.appendChild(document.createTextNode(' ')); return; }
+                const w = document.createElement('span'); w.className = 'split-word';
+                const inner = document.createElement('span'); inner.textContent = p; inner.style.setProperty('--i', String(i++));
+                w.appendChild(inner); frag.appendChild(w);
+              });
+              child.replaceWith(frag);
+            } else if (child.nodeType === 1) walk(child);
+          });
+        };
+        const label = el.textContent || '';
+        walk(el);
+        el.setAttribute('aria-label', label.trim());
+        el.querySelectorAll('.split-word').forEach((w) => w.setAttribute('aria-hidden', 'true'));
+      });
+
+      const animateCount = (el: HTMLElement) => {
+        const end = Number(el.dataset.count), dec = Number(el.dataset.decimals || 0);
+        const fmt = new Intl.NumberFormat(el.dataset.locale, { minimumFractionDigits: dec, maximumFractionDigits: dec });
+        const pre = el.dataset.prefix || '', suf = el.dataset.suffix || '';
+        if (reduce) return;
+        const t0 = performance.now(), dur = 1600;
+        const tick = (now: number) => {
+          const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 4);
+          el.textContent = pre + fmt.format(end * e) + suf;
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      };
+
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          const el = e.target as HTMLElement;
+          el.classList.add('is-in');
+          if (el.dataset.count) animateCount(el);
+          io.unobserve(el);
+        });
+      }, { rootMargin: '0px 0px -8% 0px', threshold: 0.12 });
+      const pending = new Set(document.querySelectorAll<HTMLElement>('[data-reveal], [data-split], [data-count]'));
+      pending.forEach((el) => io.observe(el));
+      // Red de seguridad: si el usuario salta (ancla, scroll rápido), revela lo que ya quedó por encima.
+      let raf = 0;
+      window.addEventListener('scroll', () => {
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(() => pending.forEach((el) => {
+          if (el.classList.contains('is-in')) { pending.delete(el); return; }
+          if (el.getBoundingClientRect().top < window.innerHeight) { el.classList.add('is-in'); if (el.dataset.count) animateCount(el); io.unobserve(el); pending.delete(el); }
+        }));
+      }, { passive: true });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,50 @@
+---
+/**
+ * Marquesina infinita de logotipos. Los logos son FICTICIOS (wordmarks SVG generados)
+ * para no simular respaldo de empresas reales. Sustitúyelos por los SVG reales de tus clientes.
+ */
+import { partners } from '../../data/site';
+interface Props { label?: string; tone?: 'light' | 'dark' }
+const { label, tone = 'light' } = Astro.props;
+const shapes = [
+  '<circle cx="10" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="10" cy="12" r="2.4" fill="currentColor"/>',
+  '<path d="M3 19 10 5l7 14z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>',
+  '<rect x="3" y="5" width="14" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M3 12h14" stroke="currentColor" stroke-width="2.4"/>',
+  '<path d="M3 16c3-8 11-8 14 0" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="10" cy="8" r="2.6" fill="currentColor"/>',
+  '<path d="M4 4h5l8 16h-5z" fill="currentColor"/>',
+  '<circle cx="7" cy="12" r="4.5" fill="currentColor"/><circle cx="14" cy="12" r="4.5" fill="none" stroke="currentColor" stroke-width="2.2"/>',
+  '<path d="M3 12h4l2-6 3 12 2-6h3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>',
+  '<path d="M10 3c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11z" fill="currentColor"/>',
+];
+const styles = ['upper', 'normal', 'upper', 'normal', 'upper', 'normal', 'upper', 'normal'];
+const items = partners.map((name, i) => ({ name, shape: shapes[i % shapes.length], upper: styles[i] === 'upper' }));
+---
+<div class:list={['marquee', `marquee--${tone}`]} aria-label={label} role="region">
+  {label && <p class="marquee__label mono">{label}</p>}
+  <div class="marquee__viewport">
+    {[0, 1].map((dup) => (
+      <ul class="marquee__track" role="list" aria-hidden={dup === 1 ? 'true' : undefined}>
+        {items.map((it) => (
+          <li class="marquee__item">
+            <svg width="22" height="24" viewBox="0 0 20 24" aria-hidden="true" set:html={it.shape} />
+            <span class:list={['marquee__name', { upper: it.upper }]}>{it.name}</span>
+          </li>
+        ))}
+      </ul>
+    ))}
+  </div>
+</div>
+<style>
+  .marquee { display: grid; gap: var(--space-5); }
+  .marquee__label { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--c-muted); text-align: center; }
+  .marquee--dark .marquee__label { color: var(--c-muted-dark); }
+  .marquee__viewport { display: flex; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
+  .marquee__track { display: flex; flex: none; gap: clamp(2.5rem, 5vw, 5rem); padding-right: clamp(2.5rem, 5vw, 5rem); list-style: none; animation: marquee 38s linear infinite; }
+  .marquee__viewport:hover .marquee__track { animation-play-state: paused; }
+  .marquee__item { display: flex; align-items: center; gap: 0.55rem; color: color-mix(in srgb, currentColor 62%, transparent); transition: color var(--dur); white-space: nowrap; }
+  .marquee__item:hover { color: currentColor; }
+  .marquee__name { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.03em; }
+  .marquee__name.upper { text-transform: uppercase; letter-spacing: 0.08em; font-size: 1.05rem; font-weight: 700; }
+  @keyframes marquee { to { transform: translateX(-100%); } }
+  @media (prefers-reduced-motion: reduce) { .marquee__track { animation: none; } .marquee__viewport { flex-wrap: wrap; justify-content: center; } .marquee__track[aria-hidden] { display: none; } }
+</style>

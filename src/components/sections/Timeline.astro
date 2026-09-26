@@ -1,0 +1,39 @@
+---
+/** Línea de tiempo horizontal con scroll por arrastre / rueda y snap. */
+import { timeline } from '../../data/company';
+import { t, type Lang } from '../../i18n';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+---
+<div class="tl" data-drag-scroll tabindex="0" aria-label={lang === 'es' ? 'Historia de GEOLight' : 'GEOLight history'}>
+  <ol class="tl__track" role="list">
+    {timeline.map((it) => (
+      <li class="tl__item">
+        <span class="tl__year">{it.year}</span>
+        <span class="tl__tick" aria-hidden="true"></span>
+        <h3 class="tl__title">{t(it.title, lang)}</h3>
+        <p class="tl__text">{t(it.text, lang)}</p>
+      </li>
+    ))}
+  </ol>
+</div>
+<style>
+  .tl { overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: thin; scrollbar-color: var(--c-sun) transparent; cursor: grab; padding-bottom: var(--space-5); outline-offset: 6px; }
+  .tl.is-dragging { cursor: grabbing; scroll-snap-type: none; }
+  .tl__track { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(260px, 22%); position: relative; }
+  .tl__track::before { content: ''; position: absolute; left: 0; right: 0; top: 5.35rem; height: 1px; background: repeating-linear-gradient(90deg, currentColor 0 4px, transparent 4px 9px); opacity: 0.35; }
+  .tl__item { scroll-snap-align: start; padding-right: var(--space-6); display: grid; grid-template-rows: auto auto auto 1fr; gap: 0.7rem; user-select: none; }
+  .tl__year { font-size: var(--fs-2xl); letter-spacing: -0.05em; line-height: 1; font-weight: 500; }
+  .tl__tick { width: 13px; height: 13px; border-radius: 50%; background: var(--c-sun); box-shadow: 0 0 0 5px color-mix(in srgb, var(--c-sun) 25%, transparent); margin: 1rem 0 0.6rem; }
+  .tl__title { font-size: var(--fs-md); }
+  .tl__text { font-size: var(--fs-sm); color: var(--c-muted); }
+  :global(.surface-dark) .tl__text { color: var(--c-muted-dark); }
+</style>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-drag-scroll]').forEach((el) => {
+    let down = false, startX = 0, startLeft = 0;
+    el.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') return; down = true; startX = e.clientX; startLeft = el.scrollLeft; el.classList.add('is-dragging'); });
+    window.addEventListener('pointerup', () => { down = false; el.classList.remove('is-dragging'); });
+    el.addEventListener('pointermove', (e) => { if (!down) return; el.scrollLeft = startLeft - (e.clientX - startX); });
+  });
+</script>

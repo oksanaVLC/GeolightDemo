@@ -1,0 +1,40 @@
+---
+/** Banda CTA final con degradado solar + trama de puntos. */
+import Button from '../ui/Button.astro';
+import { path, type Lang } from '../../i18n';
+import { site } from '../../data/site';
+interface Props { lang: Lang; title?: string; text?: string }
+const { lang } = Astro.props;
+const copy = {
+  es: { title: '¿Hablamos de tu próximo megavatio?', text: 'Cuéntanos qué tienes — suelo, cubierta, consumo o una cartera de activos — y te respondemos en 48 horas con un primer análisis.', cta: 'Empezar la conversación', alt: 'o escríbenos a' },
+  en: { title: 'Shall we talk about your next megawatt?', text: 'Tell us what you have — land, a roof, a load profile or an asset portfolio — and we will get back within 48 hours with a first assessment.', cta: 'Start the conversation', alt: 'or email us at' },
+}[lang];
+const title = Astro.props.title ?? copy.title;
+const text = Astro.props.text ?? copy.text;
+---
+<section class="cta">
+  <div class="container">
+    <div class="cta__box" data-reveal="scale">
+      <div class="cta__dots" aria-hidden="true"></div>
+      <div class="cta__content on-dark">
+        <h2 class="h2 cta__title" data-split>{title}</h2>
+        <p class="cta__text">{text}</p>
+        <div class="cta__actions">
+          <Button href={path('contact', lang)} variant="light" size="lg">{copy.cta}</Button>
+          <span class="cta__alt">{copy.alt} <a href={`mailto:${site.email}`}>{site.email}</a></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .cta { padding-block: var(--section-y); }
+  .cta__box { position: relative; overflow: hidden; border-radius: var(--radius-lg); background: var(--c-ink); color: var(--c-paper); padding: clamp(2.5rem, 2rem + 5vw, 6rem); isolation: isolate; }
+  .cta__dots { position: absolute; inset: 0; z-index: -1; background: radial-gradient(circle, var(--c-sun) 0 1.5px, transparent 2px) 0 0 / 18px 18px; -webkit-mask-image: radial-gradient(120% 120% at 92% 15%, #000, transparent 62%); mask-image: radial-gradient(120% 120% at 92% 15%, #000, transparent 62%); opacity: 0.5; }
+  .cta__content { display: grid; gap: var(--space-5); max-width: 760px; }
+  .cta__title { max-width: 16ch; }
+  .cta__text { font-size: var(--fs-md); max-width: 56ch; color: var(--c-muted-dark); }
+  .cta__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-5); margin-top: var(--space-3); }
+  .cta__alt { font-size: var(--fs-sm); color: var(--c-muted-dark); }
+  .cta__alt a { font-weight: 600; color: var(--c-paper); text-decoration: underline; text-underline-offset: 3px; }
+</style>

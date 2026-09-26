@@ -1,0 +1,41 @@
+---
+/**
+ * Texto que "se ilumina" palabra a palabra al hacer scroll.
+ * CSS scroll-driven animations (animation-timeline: view()) con fallback JS.
+ */
+interface Props { text: string; highlight?: string[]; class?: string }
+const { text, highlight = [], class: className = '' } = Astro.props;
+const words = text.split(/\s+/);
+---
+<p class:list={['st', className]} data-scroll-text>
+  {words.map((w, i) => <span class:list={['st__w', { 'st__w--hl': highlight.some((h) => w.toLowerCase().includes(h.toLowerCase())) }]} style={`--i:${i}`}>{w} </span>)}
+</p>
+<style>
+  .st { font-size: var(--fs-2xl); line-height: 1.12; letter-spacing: -0.035em; font-weight: 450; max-width: 26ch; }
+  .st__w { color: color-mix(in srgb, currentColor 18%, transparent); transition: color 0.4s; }
+  .st__w--hl { font-family: var(--font-serif); font-style: italic; font-weight: 400; letter-spacing: -0.01em; }
+  .st__w.is-lit { color: currentColor; }
+  .st__w--hl.is-lit { color: var(--c-ember); }
+  @supports (animation-timeline: view()) {
+    .st__w { animation: lit linear both; animation-timeline: view(); animation-range: cover 10% cover 40%; transition: none; }
+    .st__w--hl { animation-name: lit-hl; }
+    @keyframes lit { to { color: var(--c-ink); } }
+    @keyframes lit-hl { to { color: var(--c-ember); } }
+  }
+  @media (prefers-reduced-motion: reduce) { .st__w { color: inherit; animation: none; } }
+</style>
+<script>
+  if (!CSS.supports('animation-timeline: view()')) {
+    document.querySelectorAll<HTMLElement>('[data-scroll-text]').forEach((p) => {
+      const words = [...p.querySelectorAll<HTMLElement>('.st__w')];
+      const update = () => {
+        const r = p.getBoundingClientRect();
+        const prog = Math.min(1, Math.max(0, (window.innerHeight * 0.85 - r.top) / (r.height + window.innerHeight * 0.35)));
+        const n = Math.round(prog * words.length);
+        words.forEach((w, i) => w.classList.toggle('is-lit', i < n));
+      };
+      update();
+      window.addEventListener('scroll', () => requestAnimationFrame(update), { passive: true });
+    });
+  }
+</script>

@@ -1,0 +1,41 @@
+---
+import Halftone from '../ui/Halftone.astro';
+import Chip from '../ui/Chip.astro';
+import Icon from '../ui/Icon.astro';
+import { detailPath, t, type Lang } from '../../i18n';
+import { statusLabel, typeLabel, type Project } from '../../data/projects';
+interface Props { project: Project; lang: Lang; tone?: 'sun' | 'ink' | 'paper' }
+const { project: p, lang, tone = 'sun' } = Astro.props;
+---
+<article class="card pc" data-type={p.type}>
+  <a href={detailPath('projects', p.slug[lang], lang)} class="pc__link">
+    <div class="pc__media">
+      <Halftone id={p.photo} lang={lang} tone={tone} ratio={4 / 3} reveal sizes="(min-width: 1100px) 33vw, (min-width: 700px) 50vw, 100vw" />
+      <div class="pc__chips">
+        <Chip tone="dark" dot={p.status !== 'operating'}>{t(statusLabel[p.status], lang)}</Chip>
+      </div>
+    </div>
+    <div class="pc__body">
+      <p class="pc__meta mono"><span>{t(typeLabel[p.type], lang)}</span><span>{t(p.location, lang)} · {t(p.country, lang)}</span></p>
+      <h3 class="pc__title">{p.name}</h3>
+      <div class="pc__foot">
+        <span class="pc__cap">{p.capacity}</span>
+        <span class="pc__go"><Icon name="arrow-up-right" size={18} /></span>
+      </div>
+    </div>
+  </a>
+</article>
+<style>
+  .pc { height: 100%; }
+  .pc__link { display: flex; flex-direction: column; height: 100%; border-radius: var(--radius); overflow: hidden; background: var(--c-white); border: 1px solid var(--c-line); transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out); }
+  .pc__link:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+  .pc__media { position: relative; }
+  .pc__chips { position: absolute; top: 0.9rem; left: 0.9rem; z-index: 3; }
+  .pc__body { display: grid; gap: 0.5rem; padding: var(--space-5); flex: 1; }
+  .pc__meta { display: flex; justify-content: space-between; gap: 1rem; font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-muted); }
+  .pc__title { font-size: var(--fs-lg); }
+  .pc__foot { display: flex; align-items: end; justify-content: space-between; margin-top: auto; padding-top: var(--space-4); border-top: 1px dashed var(--c-line); }
+  .pc__cap { font-family: var(--font-mono); font-size: var(--fs-sm); }
+  .pc__go { display: grid; place-items: center; width: 2.4rem; height: 2.4rem; border-radius: 50%; background: var(--c-paper-2); transition: background var(--dur), transform var(--dur) var(--ease-out); }
+  .pc__link:hover .pc__go { background: var(--c-sun); transform: rotate(45deg); }
+</style>

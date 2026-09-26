@@ -1,0 +1,22 @@
+---
+/**
+ * Fondo decorativo de halftone (SVG /public/halftone.svg, degradado seafoam->cian->
+ * lavanda). Uso puntual detrás de secciones — NUNCA en el hero (que es sobrio navy).
+ * props: opacity (0–1), position, flip. Fade con máscara para fundirse con el lienzo.
+ */
+interface Props { opacity?: number; position?: string; flip?: boolean; class?: string }
+const { opacity = 0.14, position = 'right', flip = false, class: className = '' } = Astro.props;
+const pos = position === 'left' ? 'left center' : position === 'center' ? 'center' : 'right center';
+---
+<div class:list={['htbg', className]} aria-hidden="true" style={`--op:${opacity}; --pos:${pos}; --flip:${flip ? -1 : 1};`}></div>
+<style>
+  .htbg {
+    position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+    background-image: url('/halftone.svg'); background-repeat: no-repeat;
+    background-position: var(--pos); background-size: cover;
+    opacity: var(--op); transform: scaleX(var(--flip));
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 30%, #000 100%);
+    mask-image: linear-gradient(90deg, transparent, #000 30%, #000 100%);
+  }
+  @media (max-width: 760px) { .htbg { opacity: calc(var(--op) * 0.7); background-size: 200% auto; } }
+</style>

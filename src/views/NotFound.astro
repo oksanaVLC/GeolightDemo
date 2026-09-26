@@ -1,0 +1,29 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/ui/Button.astro';
+import GlobalInfraMap from '../components/sections/GlobalInfraMap.astro';
+import { path, useT, type Lang } from '../i18n';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const tr = useT(lang);
+---
+<BaseLayout lang={lang} title="404" description={tr('notFound.text')} noindex headerTheme="light" alternates={{ es: '/', en: '/en/' }}>
+  <section class="nf">
+    <GlobalInfraMap variant="v2" align="center" />
+    <div class="nf__fade" aria-hidden="true"></div>
+    <div class="container nf__inner">
+      <p class="mono nf__code">ERR_404 · PAGE_OFF_GRID</p>
+      <h1 class="display" data-split>404</h1>
+      <p class="h3 nf__title">{tr('notFound.title')}</p>
+      <p class="lead">{tr('notFound.text')}</p>
+      <Button href={path('home', lang)} size="lg">{tr('notFound.cta')}</Button>
+    </div>
+  </section>
+</BaseLayout>
+<style>
+  .nf { position: relative; min-height: 100svh; display: flex; align-items: center; overflow: hidden; background: var(--c-paper); }
+  .nf__fade { position: absolute; inset: 0; z-index: 1; background: radial-gradient(80% 80% at 50% 50%, rgb(246 246 248 / 0.86), rgb(246 246 248 / 0.5)); }
+  .nf__inner { position: relative; z-index: 2; display: grid; gap: var(--space-5); justify-items: start; padding-top: 100px; }
+  .nf__code { font-size: var(--fs-xs); letter-spacing: 0.12em; color: var(--c-sun); }
+  .nf__title { max-width: 18ch; }
+</style>

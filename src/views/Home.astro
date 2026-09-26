@@ -1,0 +1,811 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+import PartnerLogos from '../components/brand/PartnerLogos.astro';
+import CtaBand from '../components/sections/CtaBand.astro';
+import NewsCard from '../components/sections/NewsCard.astro';
+import ProcessSticky from '../components/sections/ProcessSticky.astro';
+import ProjectMap from '../components/sections/ProjectMap.astro';
+import SavingsCalculator from '../components/sections/SavingsCalculator.astro';
+import ScrollText from '../components/sections/ScrollText.astro';
+import Accordion from '../components/ui/Accordion.astro';
+import Button from '../components/ui/Button.astro';
+import Chip from '../components/ui/Chip.astro';
+import Counter from '../components/ui/Counter.astro';
+import Halftone from '../components/ui/Halftone.astro';
+import HalftoneBg from '../components/ui/HalftoneBg.astro';
+import Icon from '../components/ui/Icon.astro';
+import SectionHeader from '../components/ui/SectionHeader.astro';
+import { esgMetrics, homeFaqs } from '../data/company';
+import type { PhotoKey } from '../data/images';
+import { keyStats, site } from '../data/site';
+import { solutions } from '../data/solutions';
+import { detailPath, path, t, useT, type Lang } from '../i18n';
+import { getNews, newsHref, readingTime } from '../lib/news';
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const tr = useT(lang);
+const news = (await getNews(lang)).slice(0, 3);
+
+const c = {
+  es: {
+    title: 'Energía solar a escala industrial',
+    status: 'Generando ahora · 64 plantas en línea',
+    h1a: 'La energía del sol,',
+    h1b: 'diseñada',
+    h1c: 'para durar.',
+    lead: 'Desarrollamos, construimos y operamos plantas solares, autoconsumo industrial y almacenamiento con baterías en España, Portugal e Italia.',
+    cta1: 'Ver soluciones',
+    cta2: 'Proyectos',
+    scroll: 'Desliza',
+    partners: 'Industria, logística y fondos que ya generan con GEOLight',
+    manifesto:
+      'Creemos que la transición energética se gana en los detalles: en el suelo bien elegido, en la ingeniería que dura 30 años y en el territorio que prospera con cada megavatio.',
+    hl: ['detalles', '30', 'territorio'],
+    since: 'Desde 2011',
+    sinceText:
+      'Nacimos en València instalando cubiertas. Hoy gestionamos 1,8 GW desde el primer estudio de suelo hasta el último día de operación.',
+    aboutCta: 'Conocer GEOLight',
+    solEyebrow: 'Soluciones',
+    solTitle: 'Cuatro líneas de negocio, un mismo estándar.',
+    solIntro:
+      'Cada solución puede contratarse por separado o integrada en un proyecto llave en mano con garantía de rendimiento.',
+    mapEyebrow: 'Proyectos',
+    mapTitle: 'Presentes donde el sol trabaja más horas.',
+    mapIntro: 'Una cartera diversificada en el sur de Europa: gran escala, autoconsumo, baterías y operación.',
+    mapCta: 'Todos los proyectos',
+    esgEyebrow: 'Sostenibilidad',
+    esgTitle: 'Cada planta debe dejar el lugar mejor de lo que lo encontró.',
+    esgText:
+      'Biodiversidad activa, empleo local y un 1 % de los ingresos reinvertido en cada municipio durante toda la vida del activo.',
+    esgCta: 'Nuestro compromiso ESG',
+    newsEyebrow: 'Actualidad',
+    newsTitle: 'Lo último de GEOLight',
+    faqEyebrow: 'Preguntas frecuentes',
+    faqTitle: 'Lo que más nos preguntan',
+  },
+  en: {
+    title: 'Utility-scale solar energy',
+    status: 'Generating now · 64 plants online',
+    h1a: 'Solar energy,',
+    h1b: 'engineered',
+    h1c: 'to last.',
+    lead: 'We develop, build and operate utility-scale solar, industrial self-consumption and battery storage across Spain, Portugal and Italy.',
+    cta1: 'Explore solutions',
+    cta2: 'Projects',
+    scroll: 'Scroll',
+    partners: 'Industrial, logistics and infrastructure clients already generating with GEOLight',
+    manifesto:
+      'We believe the energy transition is won in the details: in well-chosen land, in engineering that lasts 30 years and in communities that thrive with every megawatt.',
+    hl: ['details', '30', 'communities'],
+    since: 'Since 2011',
+    sinceText:
+      'We started in Valencia installing rooftops. Today we manage 1.8 GW, from the first land study to the last day of operation.',
+    aboutCta: 'About GEOLight',
+    solEyebrow: 'Solutions',
+    solTitle: 'Four business lines, one standard.',
+    solIntro:
+      'Each solution can be contracted on its own or as part of a turnkey project with a performance guarantee.',
+    mapEyebrow: 'Projects',
+    mapTitle: 'Present where the sun works the longest hours.',
+    mapIntro:
+      'A diversified portfolio across Southern Europe: utility-scale, self-consumption, storage and operations.',
+    mapCta: 'All projects',
+    esgEyebrow: 'Sustainability',
+    esgTitle: 'Every plant should leave its place better than it found it.',
+    esgText:
+      'Active biodiversity, local jobs and 1% of revenue reinvested in each host municipality for the asset’s whole life.',
+    esgCta: 'Our ESG commitment',
+    newsEyebrow: 'Newsroom',
+    newsTitle: 'Latest from GEOLight',
+    faqEyebrow: 'FAQ',
+    faqTitle: 'What people ask us most',
+  },
+}[lang];
+
+const faqItems = homeFaqs.map((f) => ({ q: t(f.q, lang), a: t(f.a, lang) }));
+const faqLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqItems.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+---
+
+<BaseLayout
+  lang={lang}
+  title={`${site.name} — ${c.title}`}
+  description={site.description[lang]}
+  routeKey="home"
+  headerTheme="light"
+  jsonLd={[faqLd]}
+>
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="hero__network" aria-hidden="true">
+      <picture class="hero__network-base">
+        <source media="(max-width: 700px)" srcset="/images/global_network_4_mobile.webp" />
+        <img src="/images/global_network_4.webp" alt="" />
+      </picture>
+
+      <picture class="hero__network-focus">
+        <source media="(max-width: 700px)" srcset="/images/global_network_4_mobile.webp" />
+        <img src="/images/global_network_4.webp" alt="" />
+      </picture>
+    </div>
+    <div class="hero__fade" aria-hidden="true"></div>
+    <div class="hero__inner container">
+      <div class="hero__copy">
+        <Chip tone="sun" dot class="hero__status">
+          {c.status}
+        </Chip>
+        <h1 class="display hero__title" data-split>
+          {c.h1a} <em class="serif accent">{c.h1b}</em> {c.h1c}
+        </h1>
+        <p class="lead hero__lead" data-reveal style="--delay:350ms">
+          {c.lead}
+        </p>
+        <div class="hero__actions" data-reveal style="--delay:500ms">
+          <Button href={path('solutions', lang)} size="lg">
+            {c.cta1}
+          </Button>
+          <Button href={path('projects', lang)} size="lg" variant="ghost" icon="arrow-up-right">
+            {c.cta2}
+          </Button>
+        </div>
+      </div>
+      <dl class="hero__stats" data-stagger="100">
+        {keyStats.map((s) => (
+          <div class="hero__stat" data-reveal>
+            <dt class="mono">{t(s.label, lang)}</dt>
+            <dd>
+              <Counter value={s.value} decimals={s.decimals} suffix={s.suffix} lang={lang} />
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+    <a href="#intro" class="hero__scroll mono" aria-label={c.scroll}>
+      <span>{c.scroll}</span>
+      <Icon name="arrow-down" size={16} />
+    </a>
+  </section>
+
+  <!-- ============ PARTNERS ============ -->
+  <section class="section--tight partners">
+    <div class="container">
+      <PartnerLogos label={c.partners} />
+    </div>
+  </section>
+
+  <!-- ============ MANIFIESTO ============ -->
+  <section class="section intro" id="intro">
+    <div class="container intro__grid">
+      <ScrollText text={c.manifesto} highlight={c.hl} />
+      <aside class="intro__aside" data-reveal>
+        <div class="intro__media">
+          <Halftone id="engineers" lang={lang} tone="sun" ratio={4 / 5} reveal sizes="(min-width: 960px) 30vw, 100vw" />
+        </div>
+        <p class="mono intro__since">{c.since}</p>
+        <p class="muted">{c.sinceText}</p>
+        <Button href={path('about', lang)} variant="link" icon="arrow-right">
+          {c.aboutCta}
+        </Button>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============ SOLUCIONES (BENTO) ============ -->
+  <section class="section surface-alt">
+    <div class="container">
+      <SectionHeader
+        eyebrow={c.solEyebrow}
+        index="02"
+        title={c.solTitle}
+        accent={lang === 'es' ? 'mismo estándar.' : 'one standard.'}
+        intro={c.solIntro}
+        align="split"
+      >
+        <Button href={path('solutions', lang)} variant="ghost">
+          {tr('cta.viewAll')}
+        </Button>
+      </SectionHeader>
+      <ul class="bento" role="list" data-stagger="90">
+        {solutions.map((s, i) => (
+          <li class:list={['bento__cell', `bento__cell--${i}`]} data-reveal>
+            <a class="card bento__card" href={detailPath('solutions', s.slug[lang], lang)}>
+              <div class="bento__media">
+                <Halftone
+                  id={s.photo as PhotoKey}
+                  lang={lang}
+                  tone={i === 0 ? 'ink' : 'paper'}
+                  ratio={i === 0 ? 16 / 11 : 16 / 10}
+                  reveal
+                  sizes="(min-width: 1000px) 50vw, 100vw"
+                />
+              </div>
+              <div class="bento__body">
+                <div class="bento__top">
+                  <span class="bento__icon">
+                    <Icon name={s.icon} size={24} />
+                  </span>
+                  <span class="mono bento__code">{s.code}</span>
+                </div>
+                <h3 class="h3">{t(s.title, lang)}</h3>
+                <p class="bento__text">{t(s.short, lang)}</p>
+                <div class="bento__foot">
+                  <span class="bento__metric">
+                    <strong>{s.metric.value}</strong> <span class="mono">{t(s.metric.label, lang)}</span>
+                  </span>
+                  <span class="bento__go">
+                    <Icon name="arrow-up-right" size={20} />
+                  </span>
+                </div>
+              </div>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ PROCESO ============ -->
+  <section class="section">
+    <div class="container">
+      <ProcessSticky lang={lang} />
+    </div>
+  </section>
+
+  <!-- ============ MAPA DE PROYECTOS ============ -->
+  <section class="section surface-alt map-sec">
+    <HalftoneBg opacity={0.18} position="right" />
+    <div class="container">
+      <SectionHeader
+        eyebrow={c.mapEyebrow}
+        index="04"
+        title={c.mapTitle}
+        accent={lang === 'es' ? 'más horas.' : 'longest hours.'}
+        intro={c.mapIntro}
+        align="split"
+      >
+        <Button href={path('projects', lang)} variant="ghost">
+          {c.mapCta}
+        </Button>
+      </SectionHeader>
+      <ProjectMap lang={lang} />
+    </div>
+  </section>
+
+  <!-- ============ CALCULADORA ============ -->
+  <section class="section">
+    <div class="container">
+      <SavingsCalculator lang={lang} />
+    </div>
+  </section>
+
+  <!-- ============ ESG ============ -->
+  <section class="section surface-alt esg">
+    <div class="container esg__grid">
+      <div class="esg__media" data-reveal="scale">
+        <Halftone id="grassSunset" lang={lang} tone="sun" ratio={1} reveal sizes="(min-width: 960px) 45vw, 100vw" />
+      </div>
+      <div class="esg__copy">
+        <SectionHeader
+          eyebrow={c.esgEyebrow}
+          index="05"
+          title={c.esgTitle}
+          accent={lang === 'es' ? 'mejor' : 'better'}
+          intro={c.esgText}
+        />
+        <dl class="esg__stats" data-stagger="90">
+          {esgMetrics.map((m) => (
+            <div data-reveal>
+              <dd>
+                <Counter value={m.value} suffix={m.suffix} lang={lang} />
+              </dd>
+              <dt>{t(m.label, lang)}</dt>
+            </div>
+          ))}
+        </dl>
+        <Button href={path('sustainability', lang)} variant="dark">
+          {c.esgCta}
+        </Button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ NOTICIAS ============ -->
+  <section class="section">
+    <div class="container">
+      <SectionHeader eyebrow={c.newsEyebrow} index="06" title={c.newsTitle} align="split">
+        <Button href={path('news', lang)} variant="ghost">
+          {tr('cta.viewAll')}
+        </Button>
+      </SectionHeader>
+      <div class="news-grid" data-stagger="100">
+        {news.map((n) => (
+          <div data-reveal>
+            <NewsCard
+              href={newsHref(n)}
+              title={n.data.title}
+              excerpt={n.data.description}
+              date={n.data.date}
+              category={n.data.category}
+              photo={n.data.photo as PhotoKey}
+              lang={lang}
+              readingTime={readingTime(n)}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FAQ ============ -->
+  <section class="section surface-white">
+    <div class="container faq">
+      <SectionHeader eyebrow={c.faqEyebrow} index="07" title={c.faqTitle} />
+      <Accordion items={faqItems} />
+    </div>
+  </section>
+
+  <CtaBand lang={lang} />
+</BaseLayout>
+
+<script>
+  const hero = document.querySelector<HTMLElement>('.hero');
+  const network = document.querySelector<HTMLElement>('.hero__network');
+
+  if (hero && network) {
+    const updateCursor = (event: PointerEvent) => {
+      const rect = hero.getBoundingClientRect();
+
+      const x = ((event.clientX - rect.left) / rect.width) * 100;
+      const y = ((event.clientY - rect.top) / rect.height) * 100;
+
+      network.style.setProperty('--mx', `${x}%`);
+      network.style.setProperty('--my', `${y}%`);
+    };
+
+    hero.addEventListener('pointermove', updateCursor);
+
+    hero.addEventListener('pointerleave', () => {
+      network.style.setProperty('--mx', '50%');
+      network.style.setProperty('--my', '50%');
+    });
+  }
+</script>
+
+<style>
+  /* HERO */
+  .hero {
+    position: relative;
+    min-height: max(680px, 94svh);
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+    padding-top: 120px;
+    background: var(--c-paper);
+  }
+  .hero__fade {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, var(--c-paper) 0%, rgb(246 246 248 / 0.72) 34%, rgb(246 246 248 / 0) 64%),
+      linear-gradient(0deg, var(--c-paper) 2%, rgb(246 246 248 / 0) 32%),
+      linear-gradient(180deg, var(--c-paper) 0%, rgb(246 246 248 / 0) 16%);
+  }
+  .hero__inner {
+    position: relative;
+    z-index: 3;
+    display: grid;
+    gap: clamp(2.5rem, 6vh, 5rem);
+    padding-bottom: clamp(2rem, 5vh, 3.5rem);
+  }
+  .hero__copy {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+    max-width: 980px;
+  }
+  .hero__title {
+    max-width: 12ch;
+  }
+  .hero__title em {
+    font-size: 1.04em;
+  }
+  .hero__lead {
+    max-width: 52ch;
+    font-size: var(--fs-md);
+  }
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+  }
+  .hero__stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    border-top: 1px solid var(--c-line);
+  }
+  @media (min-width: 900px) {
+    .hero__stats {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  .hero__stat {
+    padding: var(--space-5) var(--space-5) 0 0;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.3rem;
+  }
+  .hero__stat + .hero__stat {
+    padding-left: var(--space-5);
+    border-left: 1px solid var(--c-line);
+  }
+  @media (max-width: 899px) {
+    .hero__stat + .hero__stat:nth-child(3) {
+      border-left: 0;
+      padding-left: 0;
+    }
+  }
+  @media (max-width: 760px) {
+    .hero__fade {
+      background: linear-gradient(0deg, var(--c-paper) 22%, rgb(246 246 248 / 0.5) 55%, transparent 88%);
+    }
+  }
+  .hero__stat dd {
+    font-size: var(--fs-2xl);
+    letter-spacing: -0.045em;
+    line-height: 1;
+    font-weight: 500;
+    color: var(--c-ink);
+  }
+  .hero__stat dt {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--c-muted);
+  }
+  .hero__scroll {
+    position: absolute;
+    z-index: 2;
+    right: var(--gutter);
+    bottom: clamp(2rem, 5vh, 3.5rem);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--c-muted);
+    writing-mode: vertical-rl;
+  }
+  .hero__scroll :global(svg) {
+    writing-mode: horizontal-tb;
+    animation: bob 2s var(--ease-in-out) infinite;
+  }
+  @keyframes bob {
+    50% {
+      transform: translateY(6px);
+    }
+  }
+  @media (min-width: 1200px) {
+    .hero__scroll {
+      display: flex;
+    }
+  }
+
+  .partners {
+    border-bottom: 1px solid var(--c-line);
+  }
+
+  /* MANIFIESTO */
+  .intro__grid {
+    display: grid;
+    gap: var(--space-8);
+    align-items: start;
+  }
+  @media (min-width: 1000px) {
+    .intro__grid {
+      grid-template-columns: 1.6fr 0.7fr;
+    }
+  }
+  .intro__aside {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: start;
+  }
+  .intro__media {
+    width: 100%;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .intro__since {
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+    color: var(--c-ember);
+    margin-top: var(--space-3);
+  }
+
+  /* BENTO */
+  .bento {
+    display: grid;
+    gap: var(--space-4);
+    list-style: none;
+    padding: 0;
+  }
+  @media (min-width: 760px) {
+    .bento {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (min-width: 1100px) {
+    .bento {
+      grid-template-columns: repeat(12, 1fr);
+    }
+    .bento__cell--0 {
+      grid-column: span 7;
+      grid-row: span 2;
+    }
+    .bento__cell--1 {
+      grid-column: span 5;
+    }
+    .bento__cell--2 {
+      grid-column: span 5;
+    }
+    .bento__cell--3 {
+      grid-column: span 12;
+    }
+    .bento__cell--3 .bento__card {
+      grid-template-columns: 0.9fr 1.1fr;
+    }
+    .bento__cell--1 .bento__media,
+    .bento__cell--2 .bento__media {
+      display: none;
+    }
+  }
+  .bento__cell {
+    display: flex;
+  }
+  .bento__card {
+    display: grid;
+    width: 100%;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--c-white);
+    border: 1px solid var(--c-line);
+    transition:
+      transform var(--dur) var(--ease-out),
+      box-shadow var(--dur) var(--ease-out);
+  }
+  .bento__card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow);
+  }
+  .bento__cell--0 .bento__card {
+    background: var(--c-ink);
+    color: var(--c-paper);
+    grid-template-rows: auto 1fr;
+  }
+  .bento__media {
+    overflow: hidden;
+  }
+  .bento__media :global(.ht) {
+    height: 100%;
+    aspect-ratio: auto !important;
+    min-height: 240px;
+  }
+  .bento__body {
+    display: grid;
+    gap: var(--space-4);
+    padding: clamp(1.5rem, 1rem + 1.5vw, 2.4rem);
+    align-content: start;
+  }
+  .bento__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .bento__icon {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 12px;
+    background: var(--c-sun);
+    color: var(--c-ink);
+  }
+  .bento__code {
+    font-size: 0.7rem;
+    opacity: 0.6;
+  }
+  .bento__text {
+    color: var(--c-muted);
+    max-width: 48ch;
+  }
+  .bento__cell--0 .bento__text {
+    color: var(--c-muted-dark);
+  }
+  .bento__foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    margin-top: auto;
+    padding-top: var(--space-4);
+    border-top: 1px dashed var(--c-line);
+  }
+  .bento__cell--0 .bento__foot {
+    border-color: var(--c-line-dark);
+  }
+  .bento__metric strong {
+    font-size: var(--fs-xl);
+    font-weight: 500;
+    letter-spacing: -0.04em;
+  }
+  .bento__metric .mono {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.6;
+  }
+  .bento__go {
+    display: grid;
+    place-items: center;
+    width: 2.8rem;
+    height: 2.8rem;
+    border-radius: 50%;
+    border: 1px solid currentColor;
+    opacity: 0.5;
+    transition: all var(--dur) var(--ease-out);
+  }
+  .bento__card:hover .bento__go {
+    opacity: 1;
+    background: var(--c-sun);
+    border-color: var(--c-sun);
+    color: var(--c-ink);
+    transform: rotate(45deg);
+  }
+
+  /* ESG */
+  .esg__grid {
+    display: grid;
+    gap: var(--space-8);
+    align-items: center;
+  }
+  @media (min-width: 960px) {
+    .esg__grid {
+      grid-template-columns: 1fr 1.1fr;
+    }
+  }
+  .esg__media {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .esg__copy {
+    display: grid;
+    justify-items: start;
+  }
+  .esg__copy :global(.sh) {
+    margin-bottom: var(--space-6);
+  }
+  .esg__stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-5) var(--space-6);
+    margin-bottom: var(--space-6);
+    width: 100%;
+  }
+  .esg__stats > div {
+    display: grid;
+    gap: 0.2rem;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--c-line);
+  }
+  .esg__stats dd {
+    font-size: var(--fs-2xl);
+    letter-spacing: -0.045em;
+    line-height: 1;
+    color: var(--c-sun);
+  }
+  .esg__stats dt {
+    font-size: var(--fs-sm);
+    color: var(--c-muted);
+  }
+
+  .map-sec > .container {
+    position: relative;
+    z-index: 1;
+  }
+  .news-grid {
+    display: grid;
+    gap: var(--space-6);
+  }
+  @media (min-width: 900px) {
+    .news-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .faq {
+    display: grid;
+    gap: var(--space-6);
+  }
+  @media (min-width: 1000px) {
+    .faq {
+      grid-template-columns: 0.8fr 1.2fr;
+    }
+  }
+
+  .hero__network {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+    pointer-events: none;
+
+    --mx: 50%;
+    --my: 50%;
+  }
+
+  .hero__network img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    filter: saturate(0.7);
+  }
+
+  /* Imagen siempre visible, muy tenue */
+  .hero__network-base {
+    opacity: 0.23;
+  }
+
+  /* Imagen que aparece alrededor del cursor */
+  .hero__network-focus {
+    opacity: 0.65;
+
+    -webkit-mask-image: radial-gradient(
+      circle 120px at var(--mx) var(--my),
+      black 0%,
+      rgb(0 0 0 / 0.9) 25%,
+      rgb(0 0 0 / 0.45) 55%,
+      transparent 100%
+    );
+
+    mask-image: radial-gradient(
+      circle 120px at var(--mx) var(--my),
+      black 0%,
+      rgb(0 0 0 / 0.9) 25%,
+      rgb(0 0 0 / 0.45) 55%,
+      transparent 100%
+    );
+  }
+  @media (max-width: 700px) {
+    .hero__network img {
+      object-position: center center;
+    }
+    .hero__network-base {
+      opacity: 0.32;
+    }
+
+    .hero__network-focus {
+      display: none;
+    }
+  }
+  .hero__status {
+    color: #fff;
+  }
+</style>

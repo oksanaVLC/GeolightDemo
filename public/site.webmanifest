@@ -1,0 +1,8 @@
+{
+  "name": "GEOLight",
+  "short_name": "GEOLight",
+  "icons": [{ "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }, { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }],
+  "theme_color": "#111a4a",
+  "background_color": "#f6f6f8",
+  "display": "standalone"
+}

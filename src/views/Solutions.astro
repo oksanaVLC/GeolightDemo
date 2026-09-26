@@ -1,0 +1,70 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import Halftone from '../components/ui/Halftone.astro';
+import Icon from '../components/ui/Icon.astro';
+import Button from '../components/ui/Button.astro';
+import ProcessSticky from '../components/sections/ProcessSticky.astro';
+import SavingsCalculator from '../components/sections/SavingsCalculator.astro';
+import CtaBand from '../components/sections/CtaBand.astro';
+import { detailPath, t, useT, type Lang } from '../i18n';
+import { solutions } from '../data/solutions';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const tr = useT(lang);
+const c = {
+  es: { title: 'Soluciones para cada escala de energía solar', accent: 'cada escala', lead: 'Desde una cubierta industrial de 100 kWp hasta una planta de 300 MWp con baterías: un mismo equipo y un mismo estándar de ingeniería.', meta: 'Soluciones de energía solar, autoconsumo, baterías y O&M' },
+  en: { title: 'Solutions for every scale of solar energy', accent: 'every scale', lead: 'From a 100 kWp industrial rooftop to a 300 MWp plant with batteries: one team and one engineering standard.', meta: 'Solar, self-consumption, battery storage and O&M solutions' },
+}[lang];
+---
+<BaseLayout lang={lang} title={c.meta} description={c.lead} routeKey="solutions">
+  <PageHero lang={lang} title={c.title} accent={c.accent} lead={c.lead} eyebrow={tr('nav.solutions')} crumbs={[{ label: tr('nav.solutions') }]} />
+
+  <section class="section">
+    <div class="container">
+      <ol class="sol-list" role="list">
+        {solutions.map((s, i) => (
+          <li class:list={['sol', { 'sol--rev': i % 2 === 1 }]}>
+            <a href={detailPath('solutions', s.slug[lang], lang)} class="sol__media card" data-reveal="scale">
+              <Halftone id={s.photo} lang={lang} tone={i % 2 ? 'paper' : 'ink'} ratio={4 / 3} reveal sizes="(min-width: 1000px) 50vw, 100vw" />
+              <span class="sol__code mono">{s.code}</span>
+            </a>
+            <div class="sol__body" data-reveal>
+              <span class="sol__icon"><Icon name={s.icon} size={28} /></span>
+              <h2 class="h2">{t(s.title, lang)}</h2>
+              <p class="lead">{t(s.intro, lang)}</p>
+              <ul class="sol__caps" role="list">
+                {s.capabilities.slice(0, 4).map((cap) => <li><Icon name="check" size={16} />{t(cap.title, lang)}</li>)}
+              </ul>
+              <div class="sol__foot">
+                <span class="sol__metric"><strong>{s.metric.value}</strong><span class="mono">{t(s.metric.label, lang)}</span></span>
+                <Button href={detailPath('solutions', s.slug[lang], lang)} variant="dark">{tr('cta.more')}</Button>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section surface-alt"><div class="container"><ProcessSticky lang={lang} index="—" /></div></section>
+  <section class="section"><div class="container"><SavingsCalculator lang={lang} /></div></section>
+  <CtaBand lang={lang} />
+</BaseLayout>
+<style>
+  .sol-list { display: grid; gap: clamp(4rem, 8vw, 8rem); }
+  .sol { display: grid; gap: var(--space-7); align-items: center; }
+  @media (min-width: 1000px) { .sol { grid-template-columns: 1fr 1fr; gap: var(--space-9); } .sol--rev .sol__media { order: 2; } }
+  .sol__media { position: relative; display: block; border-radius: var(--radius-lg); overflow: hidden; }
+  .sol__code { position: absolute; top: 1rem; left: 1rem; z-index: 3; padding: 0.3rem 0.6rem; border-radius: 6px; background: var(--c-paper); font-size: 0.7rem; }
+  .sol__body { display: grid; gap: var(--space-5); justify-items: start; }
+  .sol__icon { display: grid; place-items: center; width: 3.4rem; height: 3.4rem; border-radius: 14px; background: var(--c-sun); }
+  .sol__caps { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem 1.5rem; width: 100%; }
+  .sol__caps li { display: flex; gap: 0.5rem; align-items: center; font-size: var(--fs-sm); }
+  .sol__caps :global(svg) { color: var(--c-leaf); flex: none; }
+  .sol__foot { display: flex; flex-wrap: wrap; gap: var(--space-5); align-items: center; justify-content: space-between; width: 100%; padding-top: var(--space-5); border-top: 1px dashed var(--c-line); }
+  .sol__metric { display: grid; }
+  .sol__metric strong { font-size: var(--fs-xl); font-weight: 500; letter-spacing: -0.04em; line-height: 1; }
+  .sol__metric .mono { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--c-muted); }
+  @media (max-width: 560px) { .sol__caps { grid-template-columns: 1fr; } }
+</style>

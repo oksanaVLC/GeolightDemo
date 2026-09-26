@@ -1,0 +1,32 @@
+---
+import Halftone from '../ui/Halftone.astro';
+import { formatDate, useT, type Lang } from '../../i18n';
+import type { PhotoKey } from '../../data/images';
+interface Props { href: string; title: string; excerpt: string; date: Date; category: string; photo: PhotoKey; lang: Lang; readingTime?: number; featured?: boolean }
+const { href, title, excerpt, date, category, photo, lang, readingTime, featured = false } = Astro.props;
+const tr = useT(lang);
+---
+<article class:list={['card nc', { 'nc--featured': featured }]}>
+  <a href={href} class="nc__link">
+    <div class="nc__media"><Halftone id={photo} lang={lang} tone="paper" ratio={featured ? 16 / 10 : 3 / 2} reveal sizes="(min-width: 900px) 33vw, 100vw" /></div>
+    <div class="nc__body">
+      <p class="nc__meta mono"><span class="nc__cat">{category}</span><time datetime={date.toISOString()}>{formatDate(date, lang)}</time></p>
+      <h3 class="nc__title">{title}</h3>
+      <p class="nc__excerpt">{excerpt}</p>
+      {readingTime && <p class="nc__rt mono">{readingTime} {tr('news.minRead')}</p>}
+    </div>
+  </a>
+</article>
+<style>
+  .nc__link { display: grid; gap: var(--space-4); }
+  .nc__media { border-radius: var(--radius); overflow: hidden; }
+  .nc__body { display: grid; gap: 0.6rem; }
+  .nc__meta { display: flex; gap: 1rem; align-items: center; font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--c-muted); }
+  .nc__cat { color: var(--c-ink); padding: 0.25em 0.6em; border-radius: 4px; background: var(--c-sun); }
+  .nc__title { font-size: var(--fs-lg); line-height: 1.2; transition: color var(--dur-fast); }
+  .nc__link:hover .nc__title { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+  .nc__excerpt { color: var(--c-muted); font-size: var(--fs-sm); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .nc__rt { font-size: 0.7rem; color: var(--c-muted); }
+  .nc--featured .nc__title { font-size: var(--fs-xl); }
+  @media (min-width: 900px) { .nc--featured .nc__link { grid-template-columns: 1.3fr 1fr; align-items: center; gap: var(--space-7); } }
+</style>

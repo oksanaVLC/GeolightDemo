@@ -1,0 +1,22 @@
+---
+/** Isotipo GEOLight: globo de puntos (eco del mapa del hero) con un destello seafoam ascendente. */
+interface Props { size?: number; class?: string; ink?: string; spark?: string }
+const { size = 32, class: className = '', ink = 'currentColor', spark = 'var(--c-sun)' } = Astro.props;
+const id = `lm${Math.random().toString(36).slice(2, 7)}`;
+// rejilla de puntos dentro de un disco
+const step = 5.2, R = 17.5, cxc = 20, cyc = 20;
+const dots: { x: number; y: number; on: boolean }[] = [];
+for (let y = 3; y <= 37; y += step) {
+  for (let x = 3; x <= 37; x += step) {
+    if (Math.hypot(x - cxc, y - cyc) <= R) dots.push({ x, y, on: false });
+  }
+}
+// destello: diagonal ascendente
+const sparkOn = (x: number, y: number) => y - x < -6 && y - x > -16 && x > 14 && x < 30;
+---
+<svg class:list={['logomark', className]} width={size} height={size} viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+  <circle cx="20" cy="20" r="18.5" fill="none" stroke={ink} stroke-width="1.4" opacity="0.9" />
+  {dots.map((d) => (
+    <circle cx={d.x} cy={d.y} r={sparkOn(d.x, d.y) ? 1.7 : 1.15} fill={sparkOn(d.x, d.y) ? spark : ink} opacity={sparkOn(d.x, d.y) ? 1 : 0.55} />
+  ))}
+</svg>

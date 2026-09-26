@@ -1,0 +1,63 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/sections/PageHero.astro';
+import ProjectMap from '../components/sections/ProjectMap.astro';
+import ProjectCard from '../components/sections/ProjectCard.astro';
+import CtaBand from '../components/sections/CtaBand.astro';
+import { t, useT, type Lang } from '../i18n';
+import { projects, typeLabel, type ProjectType } from '../data/projects';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const tr = useT(lang);
+const c = {
+  es: { title: 'Proyectos que ya generan futuro', accent: 'generan futuro', lead: 'Una selección de plantas, cubiertas industriales y sistemas de almacenamiento que hemos desarrollado, construido u operamos hoy.', meta: 'Proyectos solares y de almacenamiento', count: 'proyectos' },
+  en: { title: 'Projects already generating the future', accent: 'generating the future', lead: 'A selection of plants, industrial rooftops and storage systems we have developed, built or operate today.', meta: 'Solar and storage projects', count: 'projects' },
+}[lang];
+const types = Object.keys(typeLabel) as ProjectType[];
+---
+<BaseLayout lang={lang} title={c.meta} description={c.lead} routeKey="projects">
+  <PageHero lang={lang} title={c.title} accent={c.accent} lead={c.lead} eyebrow={tr('nav.projects')} crumbs={[{ label: tr('nav.projects') }]} />
+  <section class="section surface-alt map-band">
+    <div class="container"><ProjectMap lang={lang} /></div>
+  </section>
+
+  <section class="section" data-filter-root>
+    <div class="container">
+      <div class="filters" role="toolbar" aria-label="Filtro">
+        <button class="filter is-active" data-filter="all" aria-pressed="true">{tr('filter.all')} <span class="mono">{projects.length}</span></button>
+        {types.map((ty) => (
+          <button class="filter" data-filter={ty} aria-pressed="false">{t(typeLabel[ty], lang)} <span class="mono">{projects.filter((p) => p.type === ty).length}</span></button>
+        ))}
+      </div>
+      <ul class="grid" role="list">
+        {projects.map((p, i) => <li data-item={p.type} data-reveal style={`--delay:${(i % 3) * 80}ms`}><ProjectCard project={p} lang={lang} tone={i % 3 === 1 ? 'paper' : 'sun'} /></li>)}
+      </ul>
+    </div>
+  </section>
+  <CtaBand lang={lang} />
+</BaseLayout>
+<style>
+  .map-band { padding-top: calc(var(--section-y) * 0.6); }
+  .filters { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: var(--space-7); }
+  .filter { display: inline-flex; gap: 0.6rem; align-items: center; padding: 0.7rem 1.1rem; border-radius: var(--radius-pill); border: 1px solid var(--c-line); font-size: var(--fs-sm); transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast); }
+  .filter .mono { font-size: 0.7rem; opacity: 0.6; }
+  .filter:hover { border-color: var(--c-ink); }
+  .filter.is-active { background: var(--c-ink); color: var(--c-paper); border-color: var(--c-ink); }
+  .grid { display: grid; gap: var(--space-5); }
+  @media (min-width: 700px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1100px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+  .grid li[hidden] { display: none; }
+</style>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-filter-root]').forEach((root) => {
+    const btns = root.querySelectorAll<HTMLButtonElement>('[data-filter]');
+    const items = root.querySelectorAll<HTMLElement>('[data-item]');
+    btns.forEach((b) => b.addEventListener('click', () => {
+      const f = b.dataset.filter;
+      btns.forEach((x) => { x.classList.toggle('is-active', x === b); x.setAttribute('aria-pressed', String(x === b)); });
+      const run = () => items.forEach((it) => { it.hidden = f !== 'all' && it.dataset.item !== f; });
+      // View Transitions API para animar el reordenado (si el navegador lo soporta)
+      (document as any).startViewTransition ? (document as any).startViewTransition(run) : run();
+    }));
+  });
+</script>

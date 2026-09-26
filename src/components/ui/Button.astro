@@ -1,0 +1,105 @@
+---
+/**
+ * Botón compartido. Todos los colores salen de /src/styles/tokens.css (--btn-*).
+ *   <Button href="/contacto/">Hablemos</Button>
+ *   <Button variant="dark" size="lg" icon="arrow-up-right">…</Button>
+ *   <Button variant="ghost" type="submit">…</Button>
+ * variant: primary | dark | light | ghost | ghost-light | link
+ * size:    sm | md | lg
+ */
+import Icon from './Icon.astro';
+interface Props {
+  href?: string;
+  variant?: 'primary' | 'dark' | 'light' | 'ghost' | 'ghost-light' | 'link';
+  size?: 'sm' | 'md' | 'lg';
+  icon?: string | false;
+  iconLeft?: string;
+  type?: 'button' | 'submit' | 'reset';
+  class?: string;
+  external?: boolean;
+  [key: string]: any;
+}
+const { href, variant = 'primary', size = 'md', icon = 'arrow-right', iconLeft, type = 'button', class: className = '', external = false, ...rest } = Astro.props;
+const Tag = href ? 'a' : 'button';
+const attrs = href ? { href, ...(external ? { target: '_blank', rel: 'noopener' } : {}) } : { type };
+---
+<Tag class:list={['btn', `btn--${variant}`, `btn--${size}`, className]} {...attrs} {...rest}>
+  {iconLeft && <span class="btn__icon btn__icon--left"><Icon name={iconLeft} size="1.15em" /></span>}
+  <span class="btn__label"><slot /></span>
+  {icon && (
+    <span class="btn__icon">
+      <span class="btn__i btn__i--a"><Icon name={icon} size="1.15em" /></span>
+      <span class="btn__i btn__i--b"><Icon name={icon} size="1.15em" /></span>
+    </span>
+  )}
+</Tag>
+
+<style>
+  .btn {
+    --bg: var(--btn-primary-bg);
+    --fg: var(--btn-primary-fg);
+    --bd: transparent;
+    --hover-bg: var(--btn-primary-hover);
+    --hover-fg: var(--btn-primary-fg);
+    position: relative;
+    isolation: isolate;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7em;
+    padding: 0.85em 1.1em 0.85em 1.4em;
+    border-radius: var(--btn-radius);
+    border: 1px solid var(--bd);
+    background: var(--bg);
+    color: var(--fg);
+    font-weight: 500;
+    font-size: var(--fs-sm);
+    line-height: 1;
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+    overflow: hidden;
+    transition: color var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  }
+  /* Relleno que "sube" al hacer hover */
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--hover-bg);
+    transform: translateY(101%);
+    border-radius: inherit;
+    transition: transform var(--dur) var(--ease-out);
+  }
+  .btn:hover::before, .btn:focus-visible::before { transform: translateY(0); }
+  .btn:hover, .btn:focus-visible { color: var(--hover-fg); }
+  .btn:active { transform: scale(0.98); }
+
+  .btn__icon {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 1.9em;
+    height: 1.9em;
+    margin: -0.4em -0.35em -0.4em 0;
+    border-radius: 50%;
+    background: color-mix(in srgb, currentColor 12%, transparent);
+    overflow: hidden;
+  }
+  .btn__icon--left { margin: -0.4em 0 -0.4em -0.6em; background: none; }
+  .btn__i { position: absolute; inset: 0; display: grid; place-items: center; transition: transform var(--dur) var(--ease-out); }
+  .btn__i--b { transform: translateX(-160%); }
+  .btn:hover .btn__i--a, .btn:focus-visible .btn__i--a { transform: translateX(160%); }
+  .btn:hover .btn__i--b, .btn:focus-visible .btn__i--b { transform: translateX(0); }
+
+  .btn--sm { font-size: var(--fs-xs); padding: 0.75em 0.9em 0.75em 1.15em; }
+  .btn--lg { font-size: var(--fs-base); padding: 1em 1.2em 1em 1.6em; }
+
+  .btn--dark { --bg: var(--btn-dark-bg); --fg: var(--btn-dark-fg); --hover-bg: var(--btn-dark-hover); --hover-fg: var(--c-ink); }
+  .btn--light { --bg: var(--c-paper); --fg: var(--c-ink); --hover-bg: var(--c-sun); --hover-fg: var(--c-ink); }
+  .btn--ghost { --bg: transparent; --fg: var(--c-ink); --bd: var(--c-line); --hover-bg: var(--c-ink); --hover-fg: var(--c-paper); }
+  .btn--ghost-light { --bg: transparent; --fg: var(--c-paper); --bd: rgb(243 240 231 / 0.28); --hover-bg: var(--c-paper); --hover-fg: var(--c-ink); }
+  .btn--link { --bg: transparent; --fg: currentColor; --hover-bg: transparent; --hover-fg: currentColor; padding: 0.3em 0; border-radius: 0; background-image: linear-gradient(currentColor, currentColor); background-size: 0% 1px; background-position: 0 100%; background-repeat: no-repeat; transition: background-size var(--dur) var(--ease-out); }
+  .btn--link:hover { background-size: 100% 1px; }
+  .btn--link .btn__icon { background: none; }
+</style>
